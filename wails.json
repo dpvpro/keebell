@@ -1,0 +1,13 @@
+{
+  "$schema": "https://wails.io/schemas/config.v2.json",
+  "name": "keeweb-wails",
+  "outputfilename": "keeweb-wails",
+  "frontend:install": "npm install",
+  "frontend:build": "npm run build",
+  "frontend:dev:watcher": "npm run dev",
+  "frontend:dev:serverUrl": "auto",
+  "author": {
+    "name": "Denis Proskurin",
+    "email": "4201995+dpvpro@users.noreply.github.com"
+  }
+}
