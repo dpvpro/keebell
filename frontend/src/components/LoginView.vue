@@ -7,6 +7,7 @@ const password = ref('');
 const showPassword = ref(false);
 const isLoading = ref(false);
 const errorMessage = ref('');
+const showOptionsModal = ref(false);
 const databases = ref([
   { id: 1, name: 'Personal.kdbx', path: '/Documents/Personal.kdbx', modified: '2 hours ago' },
   { id: 2, name: 'Work.kdbx', path: '/Documents/Work.kdbx', modified: '1 day ago' },
@@ -49,6 +50,14 @@ function openDatabase() {
 function createDatabase() {
   console.log('Create new database');
 }
+
+function openOptions() {
+  showOptionsModal.value = true;
+}
+
+function closeOptions() {
+  showOptionsModal.value = false;
+}
 </script>
 
 <template>
@@ -63,30 +72,40 @@ function createDatabase() {
         <p class="login-subtitle">Password Manager</p>
       </div>
 
+      <!-- Top Action Buttons -->
+      <div class="top-actions">
+        <button
+          class="top-action-btn"
+          @click="openDatabase"
+          @keydown="handleKeyDown($event, openDatabase)"
+          title="Open Database"
+        >
+          <i class="fa fa-folder-open"></i>
+          <span>Open</span>
+        </button>
+        <button
+          class="top-action-btn"
+          @click="createDatabase"
+          @keydown="handleKeyDown($event, createDatabase)"
+          title="Create New Database"
+        >
+          <i class="fa fa-plus"></i>
+          <span>New</span>
+        </button>
+        <button
+          class="top-action-btn"
+          @click="openOptions"
+          @keydown="handleKeyDown($event, openOptions)"
+          title="More Options"
+        >
+          <i class="fa fa-ellipsis-h"></i>
+          <span>More</span>
+        </button>
+      </div>
+
       <!-- Database Selection -->
       <div class="database-section">
-        <div class="database-header">
-          <h2 class="database-section-title">Recent Databases</h2>
-          <div class="database-actions">
-            <button
-              class="database-btn database-btn--secondary"
-              @click="openDatabase"
-              @keydown="handleKeyDown($event, openDatabase)"
-            >
-              <i class="fa fa-folder-open"></i>
-              <span>Open</span>
-            </button>
-            <button
-              class="database-btn database-btn--primary"
-              @click="createDatabase"
-              @keydown="handleKeyDown($event, createDatabase)"
-            >
-              <i class="fa fa-plus"></i>
-              <span>New</span>
-            </button>
-          </div>
-        </div>
-
+        <h2 class="database-section-title">Recent Databases</h2>
         <div class="database-list">
           <div
             v-for="db in databases"
@@ -150,6 +169,43 @@ function createDatabase() {
         </button>
       </div>
 
+    </div>
+
+    <!-- Options Modal -->
+    <div v-if="showOptionsModal" class="modal-overlay" @click="closeOptions">
+      <div class="modal" @click.stop>
+        <div class="modal__header">
+          <h2 class="modal__title">Options</h2>
+          <button class="modal__close" @click="closeOptions" title="Close">
+            <i class="fa fa-times"></i>
+          </button>
+        </div>
+        <div class="modal__body">
+          <div class="options-list">
+            <button class="options-list__item" @click="console.log('Settings')">
+              <i class="fa fa-cog"></i>
+              <span>Settings</span>
+            </button>
+            <button class="options-list__item" @click="console.log('Change theme')">
+              <i class="fa fa-palette"></i>
+              <span>Change Theme</span>
+            </button>
+            <button class="options-list__item" @click="console.log('About')">
+              <i class="fa fa-info-circle"></i>
+              <span>About Keebell</span>
+            </button>
+            <button class="options-list__item" @click="console.log('Lock all')">
+              <i class="fa fa-lock"></i>
+              <span>Lock All Databases</span>
+            </button>
+          </div>
+        </div>
+        <div class="modal__footer">
+          <button class="modal__btn modal__btn--primary" @click="closeOptions">
+            Close
+          </button>
+        </div>
+      </div>
     </div>
 
     <!-- Background Decoration -->
@@ -217,59 +273,49 @@ function createDatabase() {
   margin: 0;
 }
 
-/* Database Section */
-.database-section {
-  margin-bottom: 30px;
+/* Top Actions */
+.top-actions {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 24px;
 }
 
-.database-header {
+.top-action-btn {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin-bottom: 16px;
-}
-
-.database-section-title {
-  font-size: 14px;
-  font-weight: 500;
-  margin: 0;
-  color: var(--text-color);
-}
-
-.database-actions {
-  display: flex;
   gap: 8px;
-}
-
-.database-btn {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
-  font-size: 12px;
-  border-radius: var(--button-border-radius);
+  padding: 10px 20px;
+  font-size: 13px;
+  font-weight: 500;
+  background-color: var(--secondary-background-color);
+  border: 1px solid var(--base-border-color);
+  border-radius: var(--input-border-radius);
+  color: var(--text-color);
   cursor: pointer;
   transition: all var(--fast-duration) var(--base-timing);
 }
 
-.database-btn--secondary {
-  background-color: var(--secondary-background-color);
-  border: 1px solid var(--base-border-color);
-  color: var(--text-color);
-}
-
-.database-btn--secondary:hover {
+.top-action-btn:hover {
   background-color: var(--hover-background-color);
+  border-color: var(--action-color);
 }
 
-.database-btn--primary {
-  background-color: var(--action-color);
-  border: 1px solid var(--action-color);
-  color: white;
+.top-action-btn i {
+  font-size: 14px;
 }
 
-.database-btn--primary:hover {
-  background-color: var(--action-background-color-focus);
+/* Database Section */
+.database-section {
+  margin-bottom: 30px;
+  text-align: center;
+}
+
+.database-section-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--muted-color);
+  margin: 0 0 12px 0;
 }
 
 .database-list {
@@ -277,6 +323,8 @@ function createDatabase() {
   border: 1px solid var(--base-border-color);
   border-radius: var(--base-border-radius);
   overflow: hidden;
+  max-width: 400px;
+  margin: 0 auto;
 }
 
 .database-item {
@@ -558,5 +606,124 @@ function createDatabase() {
     width: 36px;
     height: 36px;
   }
+}
+
+/* Modal */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: var(--z-index-modal);
+}
+
+.modal {
+  background-color: var(--background-color);
+  border: 1px solid var(--base-border-color);
+  border-radius: var(--base-border-radius);
+  width: 100%;
+  max-width: 400px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+}
+
+.modal__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--base-border-color);
+}
+
+.modal__title {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0;
+  color: var(--text-color);
+}
+
+.modal__close {
+  background: none;
+  border: none;
+  color: var(--muted-color);
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: var(--button-border-radius);
+  font-size: 16px;
+  transition: all var(--fast-duration) var(--base-timing);
+}
+
+.modal__close:hover {
+  background-color: var(--hover-background-color);
+  color: var(--text-color);
+}
+
+.modal__body {
+  padding: 20px;
+}
+
+.modal__footer {
+  padding: 16px 20px;
+  border-top: 1px solid var(--base-border-color);
+  display: flex;
+  justify-content: flex-end;
+}
+
+.modal__btn {
+  padding: 8px 20px;
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: var(--button-border-radius);
+  cursor: pointer;
+  transition: all var(--fast-duration) var(--base-timing);
+}
+
+.modal__btn--primary {
+  background-color: var(--action-color);
+  border: 1px solid var(--action-color);
+  color: white;
+}
+
+.modal__btn--primary:hover {
+  background-color: var(--action-background-color-focus);
+}
+
+/* Options List */
+.options-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.options-list__item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 16px;
+  background-color: var(--secondary-background-color);
+  border: 1px solid var(--base-border-color);
+  border-radius: var(--base-border-radius);
+  color: var(--text-color);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all var(--fast-duration) var(--base-timing);
+  text-align: left;
+}
+
+.options-list__item:hover {
+  background-color: var(--hover-background-color);
+  border-color: var(--action-color);
+}
+
+.options-list__item i {
+  font-size: 16px;
+  width: 20px;
+  text-align: center;
+  color: var(--action-color);
 }
 </style>
