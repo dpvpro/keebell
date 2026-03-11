@@ -26,6 +26,8 @@ onMounted(() => {
   
   // Listen for login errors from App.vue
   window.addEventListener('login-error', handleLoginError);
+  // Listen for global escape
+  window.addEventListener('global-escape', handleGlobalEscape);
 });
 
 function handleLoginError(event) {
@@ -34,6 +36,13 @@ function handleLoginError(event) {
   isLoading.value = false;
   // Focus password field for retry
   focusPassword();
+}
+
+function handleGlobalEscape() {
+  // Close options modal
+  if (showOptionsModal.value) {
+    closeOptions();
+  }
 }
 
 async function focusPassword() {
@@ -128,6 +137,7 @@ function handleEscapeKey(event) {
 onUnmounted(() => {
   document.removeEventListener('keydown', handleEscapeKey);
   window.removeEventListener('login-error', handleLoginError);
+  window.removeEventListener('global-escape', handleGlobalEscape);
 });
 </script>
 

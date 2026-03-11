@@ -165,6 +165,8 @@ function handleEscapeKey(event) {
     if (showVersionModal.value) {
       closeVersionModal();
     }
+    // Clear search filter in EntryTable
+    window.dispatchEvent(new CustomEvent('global-escape'));
     // Blur active element to remove focus from inputs
     if (document.activeElement && document.activeElement.tagName !== 'BODY') {
       document.activeElement.blur();

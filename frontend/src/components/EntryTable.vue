@@ -38,12 +38,19 @@ function handleEscapeKey(event) {
   }
 }
 
+function handleGlobalEscape() {
+  // For future modals in EntryTable
+  // Currently just clears search if already cleared by handleEscapeKey
+}
+
 onMounted(() => {
   document.addEventListener('keydown', handleEscapeKey);
+  window.addEventListener('global-escape', handleGlobalEscape);
 });
 
 onUnmounted(() => {
   document.removeEventListener('keydown', handleEscapeKey);
+  window.removeEventListener('global-escape', handleGlobalEscape);
 });
 
 function selectEntry(entry) {
