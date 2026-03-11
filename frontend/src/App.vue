@@ -1,83 +1,39 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue';
-import { Version, OpenDatabase } from '../wailsjs/go/main/App';
+import { Version } from '../wailsjs/go/main/App';
 import LoginView from './components/LoginView.vue';
 import EntryTable from './components/EntryTable.vue';
+import { useDatabase, useAuth, useTheme } from './composables';
+import { copyToClipboard, openUrl } from './utils/clipboard';
 
-// State
-const isLoggedIn = ref(false);
-const isDatabaseOpen = ref(false);
+// Composables
+const {
+  entries,
+  groups,
+  databaseName,
+  isDatabaseOpen,
+  isLoading,
+  error: dbError,
+  openDatabase,
+  closeDB
+} = useDatabase();
+
+const {
+  isLoggedIn,
+  login,
+  logout
+} = useAuth();
+
+const {
+  isDarkTheme,
+  toggleTheme
+} = useTheme();
+
+// Local state
 const selectedEntry = ref(null);
-const isDarkTheme = ref(true);
 const showPassword = ref(false);
 const showVersionModal = ref(false);
 const appVersion = ref('');
-const entries = ref([]);
-const databaseName = ref('');
-const isLoading = ref(false);
-
-const groups = ref([
-  { id: 1, name: 'Internet', icon: 'globe', count: 4 },
-  { id: 2, name: 'Work', icon: 'briefcase', count: 2 },
-  { id: 3, name: 'Personal', icon: 'user', count: 2 },
-  { id: 4, name: 'Archived', icon: 'archive', count: 0 },
-]);
-
-const openFiles = ref([
-  { id: 1, name: 'Personal.kdbx', active: true, modified: false },
-  { id: 2, name: 'Work.kdbx', active: false, modified: true },
-]);
-
-// Update body theme class
-function updateBodyTheme() {
-  if (isDarkTheme.value) {
-    document.body.classList.add('th-dark');
-    document.body.classList.remove('th-light');
-  } else {
-    document.body.classList.add('th-light');
-    document.body.classList.remove('th-dark');
-  }
-}
-
-// Initialize with first entry selected and set theme
-function selectEntry(entry) {
-  selectedEntry.value = entry;
-}
-
-function toggleTheme() {
-  isDarkTheme.value = !isDarkTheme.value;
-  updateBodyTheme();
-}
-
-function copyToClipboard(text) {
-  if (!text) return;
-  // Use Launcher.setClipboardText if available
-  if (window.Launcher) {
-    window.Launcher.setClipboardText(text);
-  } else {
-    // Fallback to navigator clipboard API
-    navigator.clipboard.writeText(text).catch(err => {
-      console.error('Failed to copy:', err);
-    });
-  }
-  // Show some feedback (could be enhanced with a toast notification)
-  console.log('Copied to clipboard:', text.substring(0, 20) + '...');
-}
-
-function togglePasswordVisibility() {
-  showPassword.value = !showPassword.value;
-}
-
-function openUrl(url) {
-  if (!url) return;
-  // Use Launcher.openLink if available
-  if (window.Launcher) {
-    window.Launcher.openLink(url);
-  } else {
-    // Fallback to window.open
-    window.open(url, '_blank');
-  }
-}
 
 function handleKeyDown(event, action) {
   // Handle Enter or Space key for accessibility
@@ -112,62 +68,42 @@ function closeVersionModal() {
 
 async function handleLogin(data) {
   console.log('Login with database:', data.database, 'Password:', data.password ? '***' : '');
-  
+
   if (!data.database || !data.database.path || !data.password) {
     emitLoginError('Please select a database and enter password');
     return;
   }
-  
-  isLoading.value = true;
-  
-  try {
-    const result = await OpenDatabase(data.database.path, data.password);
-    
-    if (result.success) {
-      isLoggedIn.value = true;
-      isDatabaseOpen.value = true;
-      databaseName.value = result.database.name;
-      entries.value = result.database.allEntries || [];
-      console.log('Database opened successfully:', entries.value.length, 'entries');
-    } else {
-      emitLoginError(result.error || 'Failed to open database');
-    }
-  } catch (e) {
-    console.error('Error opening database:', e);
-    emitLoginError(e.message || 'Error opening database');
-  } finally {
-    isLoading.value = false;
+
+  const result = await openDatabase(data.database.path, data.password);
+
+  if (result.success) {
+    login();
+    console.log('Database opened successfully:', entries.value.length, 'entries');
+  } else {
+    emitLoginError(result.error || 'Failed to open database');
   }
 }
 
 function emitLoginError(message) {
-  // Emit error to LoginView via custom event
   window.dispatchEvent(new CustomEvent('login-error', { detail: { message } }));
 }
 
 function handleOpenFile(db) {
-  // Just log - the password is handled by handleLogin
   console.log('Database selected:', db);
 }
 
 function handleLogout() {
-  isLoggedIn.value = false;
-  isDatabaseOpen.value = false;
-  entries.value = [];
-  databaseName.value = '';
-  password.value = '';
+  closeDB();
+  logout();
   selectedEntry.value = null;
 }
 
 function handleEscapeKey(event) {
   if (event.key === 'Escape') {
-    // Close modals
     if (showVersionModal.value) {
       closeVersionModal();
     }
-    // Clear search filter in EntryTable
     window.dispatchEvent(new CustomEvent('global-escape'));
-    // Blur active element to remove focus from inputs
     if (document.activeElement && document.activeElement.tagName !== 'BODY') {
       document.activeElement.blur();
     }
@@ -175,10 +111,6 @@ function handleEscapeKey(event) {
 }
 
 onMounted(() => {
-  if (entries.value.length > 0 && !selectedEntry.value) {
-    selectedEntry.value = entries.value[0];
-  }
-  updateBodyTheme();
   document.addEventListener('keydown', handleEscapeKey);
 });
 
