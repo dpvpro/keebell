@@ -558,7 +558,7 @@ button.danger:active {
   .small-mobile-hide {
     display: none !important;
   }
-  
+
   .small-mobile-show {
     display: block !important;
   }
@@ -572,4 +572,16 @@ button.danger:active {
   .no-print {
     display: none !important;
   }
+}
+
+/* ============================================
+   Login View Styles
+   ============================================ */
+
+.app__body-wrapper {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow: hidden;
 }

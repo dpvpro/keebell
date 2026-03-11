@@ -1,8 +1,10 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { Version } from '../wailsjs/go/main/App';
+import LoginView from './components/LoginView.vue';
 
 // State
+const isLoggedIn = ref(false);
 const selectedEntry = ref(null);
 const isDarkTheme = ref(true);
 const showPassword = ref(false);
@@ -120,6 +122,17 @@ async function showVersionInfo() {
 function closeVersionModal() {
   showVersionModal.value = false;
 }
+
+function handleLogin(data) {
+  console.log('Login with database:', data.database, 'Password:', data.password ? '***' : '');
+  isLoggedIn.value = true;
+}
+
+function handleLogout() {
+  isLoggedIn.value = false;
+  password.value = '';
+  selectedEntry.value = null;
+}
 </script>
 
 <template>
@@ -127,7 +140,14 @@ function closeVersionModal() {
     <!-- Titlebar drag area (for frameless windows) -->
     <div class="app__titlebar-drag"></div>
 
-    <div class="app__body">
+    <!-- Login View -->
+    <LoginView
+      v-if="!isLoggedIn"
+      @login="handleLogin"
+    />
+
+    <!-- Main App View -->
+    <div v-else class="app__body-wrapper">
       <!-- Left sidebar menu -->
       <div class="app__menu">
         <div class="menu">
@@ -377,7 +397,7 @@ function closeVersionModal() {
     </div>
 
     <!-- Footer -->
-    <div class="app__footer">
+    <div v-if="isLoggedIn" class="app__footer">
       <div class="footer">
         <div
           v-for="file in openFiles"
@@ -434,8 +454,8 @@ function closeVersionModal() {
         <button
           class="footer__btn"
           title="Lock Database"
-          @click="console.log('Lock database clicked')"
-          @keydown="handleKeyDown($event, () => console.log('Lock database clicked'))"
+          @click="handleLogout"
+          @keydown="handleKeyDown($event, handleLogout)"
         >
           <i class="fa fa-sign-out-alt"></i>
         </button>
