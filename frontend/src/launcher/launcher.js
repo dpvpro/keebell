@@ -28,12 +28,12 @@ function callGo(methodName, ...args) {
 // Simple event emitter
 const EventEmitter = {
     _listeners: {},
-    
+
     on(event, callback) {
         if (!this._listeners[event]) this._listeners[event] = [];
         this._listeners[event].push(callback);
     },
-    
+
     emit(event, data) {
         const listeners = this._listeners[event];
         if (listeners) {
@@ -42,7 +42,7 @@ const EventEmitter = {
         // Also dispatch global event
         window.dispatchEvent(new CustomEvent(event, { detail: data }));
     },
-    
+
     off(event, callback) {
         const listeners = this._listeners[event];
         if (listeners) {
@@ -53,32 +53,32 @@ const EventEmitter = {
 };
 
 const Launcher = {
-    name: 'wails',
+    name: 'keebell',
     version: '2.11.0',
     autoTypeSupported: false,
     thirdPartyStoragesSupported: true,
     clipboardSupported: true,
     devTools: false,
-    
+
     // Instance state
     exitRequested: false,
     pendingUpdateFile: null,
     pendingFileToOpen: null,
     readyToOpenFiles: false,
-    
+
     // Platform methods
     platform() {
         return callGo('Platform');
     },
-    
+
     arch() {
         return callGo('Arch');
     },
-    
+
     electron() {
         return null; // Not available in Wails
     },
-    
+
     remoteApp() {
         // Return a proxy object that forwards calls to Go
         const self = this;
@@ -113,28 +113,28 @@ const Launcher = {
             }
         };
     },
-    
+
     remReq(mod) {
         throw new Error(`Native module ${mod} not available in Wails`);
     },
-    
+
     // Basic I/O
     openLink(href) {
         if (/^(http|https|ftp|sftp|mailto):/i.test(href)) {
             return callGo('OpenLink', href);
         }
     },
-    
+
     openDevTools() {
         logger.debug('DevTools not available in Wails v2');
     },
-    
+
     // File dialogs
     getSaveFileName(defaultPath, callback) {
         const title = 'Save File';
         const filterName = 'KeePass Database';
         const filterExt = '*.kdbx';
-        
+
         callGo('GetSaveFileName', defaultPath || '', title, filterName, filterExt)
             .then(result => callback(result || ''))
             .catch(err => {
@@ -142,32 +142,32 @@ const Launcher = {
                 callback('');
             });
     },
-    
+
     // Path utilities
     getUserDataPath(fileName) {
         return callGo('GetUserDataPath', fileName || '');
     },
-    
+
     getTempPath(fileName) {
         return callGo('GetTempPath', fileName || '');
     },
-    
+
     getDocumentsPath(fileName) {
         return callGo('GetDocumentsPath', fileName || '');
     },
-    
+
     getAppPath(fileName) {
         return callGo('GetAppPath', fileName || '');
     },
-    
+
     getWorkDirPath(fileName) {
         return callGo('GetWorkDirPath', fileName || '');
     },
-    
+
     joinPath(...parts) {
         return callGo('JoinPath', ...parts);
     },
-    
+
     // File operations (callback-based)
     writeFile(path, data, callback) {
         const buffer = data instanceof Uint8Array ? Array.from(data) : data;
@@ -175,7 +175,7 @@ const Launcher = {
             .then(() => callback && callback())
             .catch(err => callback && callback(err));
     },
-    
+
     readFile(path, encoding, callback) {
         callGo('ReadFile', path)
             .then(data => {
@@ -188,24 +188,24 @@ const Launcher = {
                 callback(null, err);
             });
     },
-    
+
     fileExists(path, callback) {
         callGo('FileExists', path)
             .then(exists => callback(exists))
             .catch(() => callback(false));
     },
-    
+
     fileExistsSync(path) {
         // Sync version not available
         return false;
     },
-    
+
     deleteFile(path, callback) {
         callGo('DeleteFile', path)
             .then(() => callback && callback())
             .catch(err => callback && callback(err));
     },
-    
+
     statFile(path, callback) {
         callGo('StatFile', path)
             .then(stat => {
@@ -225,13 +225,13 @@ const Launcher = {
                 callback(null, err);
             });
     },
-    
+
     mkdir(dir, callback) {
         callGo('Mkdir', dir)
             .then(() => callback && callback())
             .catch(err => callback && callback(err));
     },
-    
+
     parsePath(fileName) {
         const result = callGo('ParsePath', fileName);
         if (result && typeof result === 'object') {
@@ -251,64 +251,64 @@ const Launcher = {
             file: lastSep > 0 ? fileName.substring(lastSep + 1) : fileName
         };
     },
-    
+
     createFsWatcher(path) {
         logger.warn('FS watcher not implemented for Wails');
         return { close: () => {} };
     },
-    
+
     // Config
     loadConfig(name) {
         return callGo('LoadConfig', name);
     },
-    
+
     saveConfig(name, data) {
         return callGo('SaveConfig', name, data);
     },
-    
+
     // Application lifecycle
     preventExit(e) {
         e.returnValue = false;
         return false;
     },
-    
+
     exit() {
         this.exitRequested = true;
         this.requestExit();
     },
-    
+
     requestExit() {
         callGo('RequestExit');
     },
-    
+
     requestRestartAndUpdate(updateFilePath) {
         this.pendingUpdateFile = updateFilePath;
         callGo('RequestRestartAndUpdate', updateFilePath);
     },
-    
+
     cancelRestart() {
         this.pendingUpdateFile = null;
         callGo('CancelRestart');
     },
-    
+
     // Clipboard
     setClipboardText(text) {
         return callGo('SetClipboardText', text);
     },
-    
+
     getClipboardText() {
         return callGo('GetClipboardText');
     },
-    
+
     clearClipboardText() {
         // Wails fallback - set empty text
         callGo('SetClipboardText', '');
     },
-    
+
     quitOnRealQuitEventIfMinimizeOnQuitIsEnabled() {
         return !!this.pendingUpdateFile;
     },
-    
+
     // Window management
     minimizeApp(options) {
         if (typeof options === 'string') {
@@ -320,15 +320,15 @@ const Launcher = {
             return callGo('MinimizeMainWindow');
         }
     },
-    
+
     canDetectOsSleep() {
         return callGo('CanDetectOsSleep');
     },
-    
+
     updaterEnabled() {
         return callGo('UpdaterEnabled');
     },
-    
+
     getMainWindow() {
         // Dummy window object
         return {
@@ -343,29 +343,29 @@ const Launcher = {
             isMaximized: () => this.mainWindowMaximized()
         };
     },
-    
+
     resolveProxy(url, callback) {
         // TODO: Implement proxy resolution
         callback(null);
     },
-    
+
     hideApp() {
         return callGo('HideApp');
     },
-    
+
     isAppFocused() {
         return callGo('IsAppFocused');
     },
-    
+
     showMainWindow() {
         return callGo('ShowMainWindow');
     },
-    
+
     spawn(config) {
         const ts = logger.ts();
         let { complete } = config;
         delete config.complete;
-        
+
         callGo('Spawn', config)
             .then(result => {
                 if (result && typeof result === 'object') {
@@ -373,14 +373,14 @@ const Launcher = {
                     const stdout = result.stdout || '';
                     const stderr = result.stderr || '';
                     const err = result.err;
-                    
+
                     const msg = 'spawn ' + config.cmd + ': ' + code + ', ' + logger.ts(ts);
                     if (code !== 0) {
                         logger.error(msg + '\n' + stdout + '\n' + stderr);
                     } else {
                         logger.info(msg + (stdout && !config.noStdOutLogging ? '\n' + stdout : ''));
                     }
-                    
+
                     if (complete) {
                         complete(err || (code !== 0 ? 'Exit code ' + code : null), stdout, code);
                     }
@@ -396,7 +396,7 @@ const Launcher = {
                 }
             });
     },
-    
+
     checkOpenFiles() {
         this.readyToOpenFiles = true;
         if (this.pendingFileToOpen) {
@@ -404,7 +404,7 @@ const Launcher = {
             delete this.pendingFileToOpen;
         }
     },
-    
+
     openFile(file) {
         if (this.readyToOpenFiles) {
             EventEmitter.emit('launcher-open-file', file);
@@ -412,23 +412,23 @@ const Launcher = {
             this.pendingFileToOpen = file;
         }
     },
-    
+
     setGlobalShortcuts(appSettings) {
         return callGo('SetGlobalShortcuts', appSettings);
     },
-    
+
     minimizeMainWindow() {
         return callGo('MinimizeMainWindow');
     },
-    
+
     maximizeMainWindow() {
         return callGo('MaximizeMainWindow');
     },
-    
+
     restoreMainWindow() {
         return callGo('RestoreMainWindow');
     },
-    
+
     mainWindowMaximized() {
         return callGo('MainWindowMaximized');
     }

@@ -120,41 +120,38 @@
         <div class="menu__sections">
           {#each groups as group}
             <div class="menu__section">
-              <div 
+              <button
                 class="menu__section-header"
                 on:click={() => console.log('Group clicked:', group.name)}
                 on:keydown={(e) => handleKeyDown(e, () => console.log('Group clicked:', group.name))}
-                tabindex="0"
               >
                   <i class="fa fa-{group.icon} menu__section-icon"></i>
                   <span class="menu__section-name">{group.name}</span>
                   {#if group.count > 0}
                     <span class="menu__section-count">{group.count}</span>
                   {/if}
-                </div>
+                </button>
             </div>
           {/each}
         </div>
         
         <div class="menu__footer">
-          <div 
+          <button
             class="menu__footer-item"
             on:click={() => console.log('New Group clicked')}
             on:keydown={(e) => handleKeyDown(e, () => console.log('New Group clicked'))}
-            tabindex="0"
           >
             <i class="fa fa-plus"></i>
             <span>New Group</span>
-          </div>
-          <div 
+          </button>
+          <button
             class="menu__footer-item"
             on:click={() => console.log('Search clicked')}
             on:keydown={(e) => handleKeyDown(e, () => console.log('Search clicked'))}
-            tabindex="0"
           >
             <i class="fa fa-search"></i>
             <span>Search</span>
-          </div>
+          </button>
         </div>
       </div>
     </div>
@@ -194,9 +191,12 @@
           
           <div class="list__items">
             {#each entries as entry}
-              <div 
-                class="list__item {selectedEntry?.id === entry.id ? 'list__item--active' : ''}" 
+              <div
+                class="list__item {selectedEntry?.id === entry.id ? 'list__item--active' : ''}"
                 on:click={() => selectEntry(entry)}
+                on:keydown={(e) => handleKeyDown(e, () => selectEntry(entry))}
+                role="button"
+                tabindex="0"
               >
                 <div class="list__item-icon">
                   <i class="{getEntryIconClass(entry)}"></i>
@@ -385,45 +385,41 @@
         <span class="footer__db-text">Open Database</span>
       </div>
       
-      <div 
-        class="footer__btn" 
+      <button
+        class="footer__btn"
         title="Help"
         on:click={() => console.log('Help clicked')}
         on:keydown={(e) => handleKeyDown(e, () => console.log('Help clicked'))}
-        tabindex="0"
       >
         <i class="fa fa-question"></i>
-      </div>
-      
-      <div 
-        class="footer__btn" 
+      </button>
+
+      <button
+        class="footer__btn"
         title="Settings"
         on:click={() => console.log('Settings clicked')}
         on:keydown={(e) => handleKeyDown(e, () => console.log('Settings clicked'))}
-        tabindex="0"
       >
         <i class="fa fa-cog"></i>
-      </div>
-      
-      <div 
-        class="footer__btn" 
+      </button>
+
+      <button
+        class="footer__btn"
         title="Generate Password"
         on:click={() => console.log('Generate password clicked')}
         on:keydown={(e) => handleKeyDown(e, () => console.log('Generate password clicked'))}
-        tabindex="0"
       >
         <i class="fa fa-bolt"></i>
-      </div>
-      
-      <div 
-        class="footer__btn" 
+      </button>
+
+      <button
+        class="footer__btn"
         title="Lock Database"
         on:click={() => console.log('Lock database clicked')}
         on:keydown={(e) => handleKeyDown(e, () => console.log('Lock database clicked'))}
-        tabindex="0"
       >
         <i class="fa fa-sign-out-alt"></i>
-      </div>
+      </button>
     </div>
   </div>
 </div>
@@ -531,6 +527,12 @@
     align-items: center;
     cursor: pointer;
     border-radius: 3px;
+    background: none;
+    border: none;
+    width: 100%;
+    text-align: left;
+    font: inherit;
+    color: inherit;
   }
   
   .menu__section-header:hover {
@@ -569,6 +571,11 @@
     align-items: center;
     cursor: pointer;
     color: var(--muted-color);
+    background: none;
+    border: none;
+    width: 100%;
+    text-align: left;
+    font: inherit;
   }
   
   .menu__footer-item:hover {
@@ -997,6 +1004,9 @@
     cursor: pointer;
     color: var(--muted-color);
     border-radius: 3px;
+    background: none;
+    border: none;
+    font: inherit;
   }
   
   .footer__btn:hover {

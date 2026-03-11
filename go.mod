@@ -1,4 +1,4 @@
-module keeweb-wails
+module keebell
 
 go 1.25
 

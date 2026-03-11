@@ -116,12 +116,12 @@ func (a *App) GetUserDataPath(fileName string) string {
 			// Fallback to current directory
 			configDir = "."
 		}
-		a.userDataPath = filepath.Join(configDir, "KeeWeb")
-		
+		a.userDataPath = filepath.Join(configDir, "keebell")
+
 		// Ensure directory exists
 		os.MkdirAll(a.userDataPath, 0755)
 	}
-	
+
 	if fileName == "" {
 		return a.userDataPath
 	}
@@ -131,15 +131,15 @@ func (a *App) GetUserDataPath(fileName string) string {
 // GetTempPath returns the path to temp directory
 func (a *App) GetTempPath(fileName string) string {
 	tempDir := os.TempDir()
-	keewebTemp := filepath.Join(tempDir, "KeeWeb")
-	
+	keebellTemp := filepath.Join(tempDir, "keebell")
+
 	// Ensure directory exists
-	os.MkdirAll(keewebTemp, 0755)
-	
+	os.MkdirAll(keebellTemp, 0755)
+
 	if fileName == "" {
-		return keewebTemp
+		return keebellTemp
 	}
-	return filepath.Join(keewebTemp, fileName)
+	return filepath.Join(keebellTemp, fileName)
 }
 
 // GetDocumentsPath returns the path to documents directory
@@ -149,7 +149,7 @@ func (a *App) GetDocumentsPath(fileName string) string {
 		docDir = "."
 	}
 	docDir = filepath.Join(docDir, "Documents")
-	
+
 	if fileName == "" {
 		return docDir
 	}
@@ -166,7 +166,7 @@ func (a *App) GetAppPath(fileName string) string {
 			a.appPath = filepath.Dir(exePath)
 		}
 	}
-	
+
 	if fileName == "" {
 		return a.appPath
 	}
@@ -179,7 +179,7 @@ func (a *App) GetWorkDirPath(fileName string) string {
 	if err != nil {
 		wd = "."
 	}
-	
+
 	if fileName == "" {
 		return wd
 	}
