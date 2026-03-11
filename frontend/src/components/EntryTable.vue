@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
 
 const props = defineProps({
   entries: {
@@ -27,6 +27,23 @@ const filteredEntries = computed(() => {
       entry.notes?.toLowerCase().includes(term)
     );
   });
+});
+
+function handleEscapeKey(event) {
+  if (event.key === 'Escape') {
+    if (searchTerm.value) {
+      searchTerm.value = '';
+      event.preventDefault();
+    }
+  }
+}
+
+onMounted(() => {
+  document.addEventListener('keydown', handleEscapeKey);
+});
+
+onUnmounted(() => {
+  document.removeEventListener('keydown', handleEscapeKey);
 });
 
 function selectEntry(entry) {
