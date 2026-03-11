@@ -201,10 +201,11 @@ onUnmounted(() => {
 
 /* App container */
 .app {
-  height: 100%;
+  height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: stretch;
+  overflow: hidden;
 }
 
 .app__titlebar-drag {
@@ -212,14 +213,17 @@ onUnmounted(() => {
   width: 100%;
   height: 30px;
   top: 0;
-  right: 0;
+  left: 0;
   pointer-events: none;
+  z-index: 1000;
 }
 
-.app__body {
+.app__body-wrapper {
   flex: 1;
   display: flex;
+  flex-direction: column;
   overflow: hidden;
+  margin-top: 30px;
 }
 
 /* Empty State */

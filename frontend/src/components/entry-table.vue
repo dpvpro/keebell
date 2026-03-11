@@ -355,6 +355,31 @@ function formatDate(timestamp) {
 .entry-table__body {
   flex: 1;
   overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* Scrollbar */
+.entry-table__body::-webkit-scrollbar {
+  width: 8px;
+}
+
+.entry-table__body::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.entry-table__body::-webkit-scrollbar-thumb {
+  background-color: var(--muted-color);
+  border-radius: 4px;
+}
+
+.entry-table__body::-webkit-scrollbar-thumb:hover {
+  background-color: var(--text-semi-muted-color);
+}
+
+/* Firefox scrollbar */
+.entry-table__body {
+  scrollbar-width: thin;
+  scrollbar-color: var(--muted-color) transparent;
 }
 
 /* Table Row */
@@ -470,23 +495,5 @@ function formatDate(timestamp) {
 .entry-table__empty p {
   margin: 0;
   font-size: 13px;
-}
-
-/* Scrollbar */
-.entry-table__body::-webkit-scrollbar {
-  width: 8px;
-}
-
-.entry-table__body::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.entry-table__body::-webkit-scrollbar-thumb {
-  background-color: var(--muted-color);
-  border-radius: 4px;
-}
-
-.entry-table__body::-webkit-scrollbar-thumb:hover {
-  background-color: var(--text-semi-muted-color);
 }
 </style>
