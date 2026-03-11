@@ -130,6 +130,20 @@ const Launcher = {
     },
 
     // File dialogs
+    getOpenFileName(defaultPath, title, filterName, filterExt) {
+        return callGo('GetOpenFileName', defaultPath || '', title || 'Open File', filterName || 'All Files', filterExt || '*.*')
+            .then(result => {
+                if (result && result.path) {
+                    return { path: result.path };
+                }
+                return { path: '' };
+            })
+            .catch(err => {
+                logger.error('Error getting open file name', err);
+                return { path: '' };
+            });
+    },
+
     getSaveFileName(defaultPath, callback) {
         const title = 'Save File';
         const filterName = 'KeePass Database';

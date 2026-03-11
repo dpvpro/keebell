@@ -1,26 +1,20 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue';
-import { Version } from '../wailsjs/go/main/App';
+import { Version, OpenDatabase } from '../wailsjs/go/main/App';
 import LoginView from './components/LoginView.vue';
+import EntryTable from './components/EntryTable.vue';
 
 // State
 const isLoggedIn = ref(false);
+const isDatabaseOpen = ref(false);
 const selectedEntry = ref(null);
 const isDarkTheme = ref(true);
 const showPassword = ref(false);
 const showVersionModal = ref(false);
 const appVersion = ref('');
-
-const entries = ref([
-  { id: 1, title: 'Google Account', username: 'user@gmail.com', icon: 'globe', color: 'blue', url: 'https://google.com' },
-  { id: 2, title: 'GitHub', username: 'developer', icon: 'github', color: 'violet', url: 'https://github.com' },
-  { id: 3, title: 'AWS Console', username: 'admin', icon: 'cloud', color: 'orange', url: 'https://aws.amazon.com' },
-  { id: 4, title: 'Dropbox', username: 'user@example.com', icon: 'dropbox', color: 'blue', url: 'https://dropbox.com' },
-  { id: 5, title: 'Local Database', username: 'admin', icon: 'database', color: 'green', url: '' },
-  { id: 6, title: 'SSH Server', username: 'root', icon: 'server', color: 'red', url: '' },
-  { id: 7, title: 'WiFi Password', username: '', icon: 'wifi', color: 'green', url: '' },
-  { id: 8, title: 'Bank Account', username: '123456789', icon: 'university', color: 'yellow', url: 'https://bank.com' },
-]);
+const entries = ref([]);
+const databaseName = ref('');
+const isLoading = ref(false);
 
 const groups = ref([
   { id: 1, name: 'Internet', icon: 'globe', count: 4 },
@@ -116,13 +110,51 @@ function closeVersionModal() {
   showVersionModal.value = false;
 }
 
-function handleLogin(data) {
+async function handleLogin(data) {
   console.log('Login with database:', data.database, 'Password:', data.password ? '***' : '');
-  isLoggedIn.value = true;
+  
+  if (!data.database || !data.database.path || !data.password) {
+    emitLoginError('Please select a database and enter password');
+    return;
+  }
+  
+  isLoading.value = true;
+  
+  try {
+    const result = await OpenDatabase(data.database.path, data.password);
+    
+    if (result.success) {
+      isLoggedIn.value = true;
+      isDatabaseOpen.value = true;
+      databaseName.value = result.database.name;
+      entries.value = result.database.allEntries || [];
+      console.log('Database opened successfully:', entries.value.length, 'entries');
+    } else {
+      emitLoginError(result.error || 'Failed to open database');
+    }
+  } catch (e) {
+    console.error('Error opening database:', e);
+    emitLoginError(e.message || 'Error opening database');
+  } finally {
+    isLoading.value = false;
+  }
+}
+
+function emitLoginError(message) {
+  // Emit error to LoginView via custom event
+  window.dispatchEvent(new CustomEvent('login-error', { detail: { message } }));
+}
+
+function handleOpenFile(db) {
+  // Just log - the password is handled by handleLogin
+  console.log('Database selected:', db);
 }
 
 function handleLogout() {
   isLoggedIn.value = false;
+  isDatabaseOpen.value = false;
+  entries.value = [];
+  databaseName.value = '';
   password.value = '';
   selectedEntry.value = null;
 }
@@ -162,255 +194,26 @@ onUnmounted(() => {
     <LoginView
       v-if="!isLoggedIn"
       @login="handleLogin"
+      @open-file="handleOpenFile"
     />
 
     <!-- Main App View -->
     <div v-else class="app__body-wrapper">
-      <!-- Left sidebar menu -->
-      <div class="app__menu">
-        <div class="menu">
-          <div class="menu__header">
-            <div class="menu__header-title">KeeWeb</div>
-            <button class="menu__header-button" @click="toggleTheme" title="Toggle theme">
-              <i :class="`fa fa-${isDarkTheme ? 'sun' : 'moon'}`"></i>
-            </button>
-          </div>
-
-          <div class="menu__sections">
-            <div v-for="group in groups" :key="group.id" class="menu__section">
-              <button
-                class="menu__section-header"
-                @click="console.log('Group clicked:', group.name)"
-                @keydown="handleKeyDown($event, () => console.log('Group clicked:', group.name))"
-              >
-                <i :class="`fa fa-${group.icon} menu__section-icon`"></i>
-                <span class="menu__section-name">{{ group.name }}</span>
-                <span v-if="group.count > 0" class="menu__section-count">{{ group.count }}</span>
-              </button>
-            </div>
-          </div>
-
-          <div class="menu__footer">
-            <button
-              class="menu__footer-item"
-              @click="console.log('New Group clicked')"
-              @keydown="handleKeyDown($event, () => console.log('New Group clicked'))"
-            >
-              <i class="fa fa-plus"></i>
-              <span>New Group</span>
-            </button>
-            <button
-              class="menu__footer-item"
-              @click="console.log('Search clicked')"
-              @keydown="handleKeyDown($event, () => console.log('Search clicked'))"
-            >
-              <i class="fa fa-search"></i>
-              <span>Search</span>
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Resize handle -->
-      <div class="app__menu-drag"></div>
-
-      <!-- Main content area -->
-      <div class="app__list-wrap">
-        <!-- Entries list -->
-        <div class="app__list">
-          <div class="list">
-            <div class="list__header">
-              <div class="list__search">
-                <i class="fa fa-search list__search-icon"></i>
-                <input type="text" class="list__search-input" placeholder="Search entries..." />
-              </div>
-              <div class="list__controls">
-                <button
-                  class="list__control-button"
-                  title="New Entry"
-                  @click="console.log('New Entry clicked')"
-                  @keydown="handleKeyDown($event, () => console.log('New Entry clicked'))"
-                >
-                  <i class="fa fa-plus"></i>
-                </button>
-                <button
-                  class="list__control-button"
-                  title="Sort"
-                  @click="console.log('Sort clicked')"
-                  @keydown="handleKeyDown($event, () => console.log('Sort clicked'))"
-                >
-                  <i class="fa fa-sort"></i>
-                </button>
-              </div>
-            </div>
-
-            <div class="list__items">
-              <div
-                v-for="entry in entries"
-                :key="entry.id"
-                :class="['list__item', { 'list__item--active': selectedEntry?.id === entry.id }]"
-                @click="selectEntry(entry)"
-                @keydown="handleKeyDown($event, () => selectEntry(entry))"
-                role="button"
-                tabindex="0"
-              >
-                <div class="list__item-icon">
-                  <i :class="getEntryIconClass(entry)"></i>
-                </div>
-                <div class="list__item-content">
-                  <div class="list__item-title">{{ entry.title }}</div>
-                  <div v-if="entry.username" class="list__item-subtitle">{{ entry.username }}</div>
-                </div>
-                <div
-                  v-if="entry.url"
-                  class="list__item-action"
-                  @click.stop="openUrl(selectedEntry.url)"
-                  @keydown="handleKeyDown($event, () => openUrl(selectedEntry.url))"
-                  title="Open URL"
-                >
-                  <i class="fa fa-external-link"></i>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Resize handle -->
-        <div class="app__list-drag"></div>
-
-        <!-- Entry details -->
-        <div class="app__details">
-          <div v-if="selectedEntry" class="details">
-            <div class="details__header">
-              <i :class="`details__header-color ${getEntryIconClass(selectedEntry)}`"></i>
-              <h1 class="details__header-title">{{ selectedEntry.title }}</h1>
-            </div>
-
-            <div class="details__body">
-              <div class="scroller">
-                <div class="details__body-fields">
-                  <div class="details__field">
-                    <div class="details__field-label">Username</div>
-                    <div class="details__field-value">
-                      <input type="text" :value="selectedEntry.username || ''" readonly />
-                      <button
-                        class="details__field-copy"
-                        title="Copy"
-                        @click="copyToClipboard(selectedEntry.username)"
-                        @keydown="handleKeyDown($event, () => copyToClipboard(selectedEntry.username))"
-                      >
-                        <i class="fa fa-copy"></i>
-                      </button>
-                    </div>
-                  </div>
-
-                  <div class="details__field">
-                    <div class="details__field-label">Password</div>
-                    <div class="details__field-value">
-                      <input
-                        :type="showPassword ? 'text' : 'password'"
-                        value="password123"
-                        readonly
-                      />
-                      <button
-                        class="details__field-copy"
-                        title="Copy"
-                        @click="copyToClipboard('password123')"
-                        @keydown="handleKeyDown($event, () => copyToClipboard('password123'))"
-                      >
-                        <i class="fa fa-copy"></i>
-                      </button>
-                      <button
-                        class="details__field-show"
-                        :title="showPassword ? 'Hide' : 'Show'"
-                        @click="togglePasswordVisibility"
-                        @keydown="handleKeyDown($event, togglePasswordVisibility)"
-                      >
-                        <i :class="`fa fa-eye${showPassword ? '-slash' : ''}`"></i>
-                      </button>
-                    </div>
-                  </div>
-
-                  <div v-if="selectedEntry.url" class="details__field">
-                    <div class="details__field-label">URL</div>
-                    <div class="details__field-value">
-                      <input type="text" :value="selectedEntry.url" readonly />
-                      <button
-                        class="details__field-copy"
-                        title="Copy"
-                        @click="copyToClipboard(selectedEntry.url)"
-                        @keydown="handleKeyDown($event, () => copyToClipboard(selectedEntry.url))"
-                      >
-                        <i class="fa fa-copy"></i>
-                      </button>
-                      <button
-                        class="details__field-open"
-                        title="Open"
-                        @click="openUrl(selectedEntry.url)"
-                        @keydown="handleKeyDown($event, () => openUrl(selectedEntry.url))"
-                      >
-                        <i class="fa fa-external-link"></i>
-                      </button>
-                    </div>
-                  </div>
-
-                  <div class="details__field">
-                    <div class="details__field-label">Notes</div>
-                    <div class="details__field-value">
-                      <textarea readonly>This is a sample entry for demonstration purposes. The actual KeeWeb application would show real password entries here.</textarea>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="details__body-aside">
-                  <div class="details__aside-section">
-                    <h3 class="details__aside-title">Auto-Type</h3>
-                    <button
-                      class="details__aside-button"
-                      @click="console.log('Auto-type would be performed here')"
-                      @keydown="handleKeyDown($event, () => console.log('Auto-type would be performed here'))"
-                    >
-                      <i class="fa fa-keyboard"></i>
-                      <span>Perform Auto-Type</span>
-                    </button>
-                  </div>
-
-                  <div class="details__aside-section">
-                    <h3 class="details__aside-title">History</h3>
-                    <div class="details__aside-text">Modified 2 days ago</div>
-                    <div class="details__aside-text">Created 1 week ago</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div class="details__buttons">
-              <button
-                class="details__button details__button--edit"
-                title="Edit"
-                @click="console.log('Edit entry')"
-                @keydown="handleKeyDown($event, () => console.log('Edit entry'))"
-              >
-                <i class="fa fa-edit"></i>
-              </button>
-              <button
-                class="details__button details__button--delete"
-                title="Delete"
-                @click="console.log('Delete entry')"
-                @keydown="handleKeyDown($event, () => console.log('Delete entry'))"
-              >
-                <i class="fa fa-trash-alt"></i>
-              </button>
-            </div>
-          </div>
-          <div v-else class="details details--empty">
-            <div class="details__empty-message">
-              <i class="fa fa-key details__empty-icon"></i>
-              <h2>No Entry Selected</h2>
-              <p>Select an entry from the list to view its details</p>
-            </div>
-          </div>
-        </div>
+      <!-- Entry Table -->
+      <EntryTable
+        v-if="isDatabaseOpen"
+        :entries="entries"
+        @select-entry="selectEntry"
+        @copy-username="copyToClipboard"
+        @copy-password="copyToClipboard"
+        @open-url="openUrl"
+      />
+      
+      <!-- Empty state when no database is open -->
+      <div v-else class="empty-state">
+        <i class="fa fa-key"></i>
+        <h2>No Database Open</h2>
+        <p>Open a KeePass database file to view entries</p>
       </div>
     </div>
 
@@ -544,6 +347,34 @@ onUnmounted(() => {
   flex: 1;
   display: flex;
   overflow: hidden;
+}
+
+/* Empty State */
+.empty-state {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted-color);
+  text-align: center;
+}
+
+.empty-state i {
+  font-size: 64px;
+  margin-bottom: 24px;
+  opacity: 0.5;
+}
+
+.empty-state h2 {
+  margin: 0 0 8px 0;
+  font-size: 20px;
+  color: var(--text-color);
+}
+
+.empty-state p {
+  margin: 0;
+  font-size: 14px;
 }
 
 /* Menu sidebar */

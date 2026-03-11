@@ -1,19 +1,47 @@
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue';
+import { ref, onMounted, onUnmounted, nextTick } from 'vue';
 
-const emit = defineEmits(['login']);
+const emit = defineEmits(['login', 'open-file']);
 
 const password = ref('');
 const showPassword = ref(false);
 const isLoading = ref(false);
 const errorMessage = ref('');
 const showOptionsModal = ref(false);
-const databases = ref([
-  { id: 1, name: 'Personal.kdbx', path: '/Documents/Personal.kdbx', modified: '2 hours ago' },
-  { id: 2, name: 'Work.kdbx', path: '/Documents/Work.kdbx', modified: '1 day ago' },
-]);
+const recentDatabases = ref([]);
 
 const selectedDatabase = ref(null);
+const passwordInputRef = ref(null);
+
+// Load recent databases from localStorage
+onMounted(() => {
+  try {
+    const stored = localStorage.getItem('keebell-recent-dbs');
+    if (stored) {
+      recentDatabases.value = JSON.parse(stored);
+    }
+  } catch (e) {
+    console.error('Failed to load recent databases:', e);
+  }
+  
+  // Listen for login errors from App.vue
+  window.addEventListener('login-error', handleLoginError);
+});
+
+function handleLoginError(event) {
+  const message = event.detail?.message || 'Failed to open database';
+  errorMessage.value = message;
+  isLoading.value = false;
+  // Focus password field for retry
+  focusPassword();
+}
+
+async function focusPassword() {
+  await nextTick();
+  if (passwordInputRef.value) {
+    passwordInputRef.value.focus();
+  }
+}
 
 function handleLogin() {
   if (!password.value.trim()) {
@@ -21,14 +49,16 @@ function handleLogin() {
     return;
   }
   
+  if (!selectedDatabase.value) {
+    errorMessage.value = 'Please select a database';
+    return;
+  }
+  
   isLoading.value = true;
   errorMessage.value = '';
   
-  // Simulate login - in real app this would verify with the database
-  setTimeout(() => {
-    isLoading.value = false;
-    emit('login', { database: selectedDatabase.value, password: password.value });
-  }, 1000);
+  // Emit login event with database and password
+  emit('login', { database: selectedDatabase.value, password: password.value });
 }
 
 function handleKeyDown(event, action) {
@@ -40,11 +70,39 @@ function handleKeyDown(event, action) {
 
 function selectDatabase(db) {
   selectedDatabase.value = db;
+  errorMessage.value = '';
+  // Focus password field after selecting database
+  focusPassword();
 }
 
-function openDatabase() {
-  // Would open file dialog in real app
-  console.log('Open database file');
+async function openDatabase() {
+  try {
+    const result = await window.Launcher?.getOpenFileName?.('', 'Open KeePass Database', 'KeePass Database', '*.kdbx');
+    if (result && result.path) {
+      const db = {
+        id: Date.now(),
+        name: result.path.split('/').pop() || result.path.split('\\').pop(),
+        path: result.path,
+        modified: 'Just now'
+      };
+      
+      // Add to recent databases
+      recentDatabases.value = [db, ...recentDatabases.value.filter(d => d.path !== db.path)].slice(0, 10);
+      
+      // Save to localStorage
+      try {
+        localStorage.setItem('keebell-recent-dbs', JSON.stringify(recentDatabases.value));
+      } catch (e) {
+        console.error('Failed to save recent databases:', e);
+      }
+      
+      selectDatabase(db);
+      emit('open-file', db);
+    }
+  } catch (e) {
+    console.error('Failed to open database:', e);
+    errorMessage.value = 'Failed to open database file';
+  }
 }
 
 function createDatabase() {
@@ -67,12 +125,9 @@ function handleEscapeKey(event) {
   }
 }
 
-onMounted(() => {
-  document.addEventListener('keydown', handleEscapeKey);
-});
-
 onUnmounted(() => {
   document.removeEventListener('keydown', handleEscapeKey);
+  window.removeEventListener('login-error', handleLoginError);
 });
 </script>
 
@@ -122,9 +177,13 @@ onUnmounted(() => {
       <!-- Database Selection -->
       <div class="database-section">
         <h2 class="database-section-title">Recent Databases</h2>
-        <div class="database-list">
+        <div v-if="recentDatabases.length === 0" class="database-empty">
+          <i class="fa fa-folder-open"></i>
+          <p>No recent databases. Click "Open" to select a database file.</p>
+        </div>
+        <div v-else class="database-list">
           <div
-            v-for="db in databases"
+            v-for="db in recentDatabases"
             :key="db.id"
             :class="['database-item', { 'database-item--selected': selectedDatabase?.id === db.id }]"
             @click="selectDatabase(db)"
@@ -150,6 +209,7 @@ onUnmounted(() => {
           <label for="password" class="password-label">Password</label>
           <div class="password-input-container">
             <input
+              ref="passwordInputRef"
               id="password"
               :type="showPassword ? 'text' : 'password'"
               v-model="password"
@@ -341,6 +401,25 @@ onUnmounted(() => {
   overflow: hidden;
   max-width: 400px;
   margin: 0 auto;
+}
+
+.database-empty {
+  max-width: 400px;
+  margin: 0 auto;
+  padding: 40px 20px;
+  text-align: center;
+  color: var(--muted-color);
+}
+
+.database-empty i {
+  font-size: 48px;
+  margin-bottom: 16px;
+  opacity: 0.5;
+}
+
+.database-empty p {
+  margin: 0;
+  font-size: 13px;
 }
 
 .database-item {

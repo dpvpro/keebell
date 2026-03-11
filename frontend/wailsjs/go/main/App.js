@@ -30,6 +30,10 @@ export function ClipboardSupported() {
   return window['go']['main']['App']['ClipboardSupported']();
 }
 
+export function CloseDatabase() {
+  return window['go']['main']['App']['CloseDatabase']();
+}
+
 export function DeleteFile(arg1) {
   return window['go']['main']['App']['DeleteFile'](arg1);
 }
@@ -54,8 +58,24 @@ export function GetClipboardText() {
   return window['go']['main']['App']['GetClipboardText']();
 }
 
+export function GetDatabaseName() {
+  return window['go']['main']['App']['GetDatabaseName']();
+}
+
 export function GetDocumentsPath(arg1) {
   return window['go']['main']['App']['GetDocumentsPath'](arg1);
+}
+
+export function GetEntries() {
+  return window['go']['main']['App']['GetEntries']();
+}
+
+export function GetGroups() {
+  return window['go']['main']['App']['GetGroups']();
+}
+
+export function GetOpenFileName(arg1, arg2, arg3, arg4) {
+  return window['go']['main']['App']['GetOpenFileName'](arg1, arg2, arg3, arg4);
 }
 
 export function GetSaveFileName(arg1, arg2, arg3, arg4) {
@@ -84,6 +104,10 @@ export function HideApp() {
 
 export function IsAppFocused() {
   return window['go']['main']['App']['IsAppFocused']();
+}
+
+export function IsDatabaseOpen() {
+  return window['go']['main']['App']['IsDatabaseOpen']();
 }
 
 export function JoinPath(arg1) {
@@ -116,6 +140,10 @@ export function Mkdir(arg1) {
 
 export function Name() {
   return window['go']['main']['App']['Name']();
+}
+
+export function OpenDatabase(arg1, arg2) {
+  return window['go']['main']['App']['OpenDatabase'](arg1, arg2);
 }
 
 export function OpenDevTools() {

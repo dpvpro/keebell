@@ -20,6 +20,8 @@ type App struct {
 	appPath string
 	// Pending update file path
 	pendingUpdateFile string
+	// Current open database
+	currentDB *KDBXDatabase
 }
 
 // NewApp creates a new App application struct
@@ -293,6 +295,29 @@ func (a *App) MainWindowMaximized() bool {
 	return wailsruntime.WindowIsMaximised(a.ctx)
 }
 
+// GetOpenFileName shows open file dialog
+func (a *App) GetOpenFileName(defaultPath, title, filterName, filterExt string) map[string]interface{} {
+	result, err := wailsruntime.OpenFileDialog(a.ctx, wailsruntime.OpenDialogOptions{
+		DefaultFilename: defaultPath,
+		Title:           title,
+		Filters: []wailsruntime.FileFilter{
+			{
+				DisplayName: filterName,
+				Pattern:     filterExt,
+			},
+		},
+	})
+	if err != nil || result == "" {
+		return map[string]interface{}{
+			"path": "",
+			"error": err,
+		}
+	}
+	return map[string]interface{}{
+		"path": result,
+	}
+}
+
 // GetSaveFileName shows save file dialog
 func (a *App) GetSaveFileName(defaultPath, title, filterName, filterExt string) string {
 	result, err := wailsruntime.SaveFileDialog(a.ctx, wailsruntime.SaveDialogOptions{
@@ -401,4 +426,61 @@ func (a *App) CanDetectOsSleep() bool {
 // UpdaterEnabled checks if updater is enabled
 func (a *App) UpdaterEnabled() bool {
 	return a.Platform() != "linux"
+}
+
+// OpenDatabase opens a KeePass KDBX database file
+func (a *App) OpenDatabase(path, password string) map[string]interface{} {
+	db, err := OpenKDBX(path, password)
+	if err != nil {
+		return map[string]interface{}{
+			"success": false,
+			"error":   err.Error(),
+		}
+	}
+	
+	a.currentDB = db
+	
+	return map[string]interface{}{
+		"success": true,
+		"database": map[string]interface{}{
+			"name":       db.Name,
+			"path":       db.Path,
+			"groups":     db.Groups,
+			"allEntries": db.AllEntries,
+		},
+	}
+}
+
+// GetEntries returns all entries from the current database
+func (a *App) GetEntries() []KDBXEntry {
+	if a.currentDB == nil {
+		return []KDBXEntry{}
+	}
+	return a.currentDB.AllEntries
+}
+
+// GetGroups returns all groups from the current database
+func (a *App) GetGroups() []KDBXGroup {
+	if a.currentDB == nil {
+		return []KDBXGroup{}
+	}
+	return a.currentDB.Groups
+}
+
+// CloseDatabase closes the current database
+func (a *App) CloseDatabase() {
+	a.currentDB = nil
+}
+
+// IsDatabaseOpen returns true if a database is currently open
+func (a *App) IsDatabaseOpen() bool {
+	return a.currentDB != nil
+}
+
+// GetDatabaseName returns the name of the current database
+func (a *App) GetDatabaseName() string {
+	if a.currentDB == nil {
+		return ""
+	}
+	return a.currentDB.Name
 }
