@@ -47,7 +47,7 @@ func (a *App) Name() string {
 
 // Version returns the launcher version
 func (a *App) Version() string {
-	return "2.11.0"
+	return "1.0.0"
 }
 
 // Platform returns the current platform (darwin, win32, linux)

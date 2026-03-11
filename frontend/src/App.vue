@@ -1,10 +1,13 @@
 <script setup>
 import { ref, onMounted } from 'vue';
+import { Version } from '../wailsjs/go/main/App';
 
 // State
 const selectedEntry = ref(null);
 const isDarkTheme = ref(true);
 const showPassword = ref(false);
+const showVersionModal = ref(false);
+const appVersion = ref('');
 
 const entries = ref([
   { id: 1, title: 'Google Account', username: 'user@gmail.com', icon: 'globe', color: 'blue', url: 'https://google.com' },
@@ -100,6 +103,22 @@ function getEntryIconClass(entry) {
     return `fa fa-${entry.icon} ${entry.color}-color`;
   }
   return `fa fa-${entry.icon}`;
+}
+
+async function showVersionInfo() {
+  try {
+    const version = await Version();
+    appVersion.value = version;
+    showVersionModal.value = true;
+  } catch (err) {
+    console.error('Failed to get version:', err);
+    appVersion.value = 'Unknown';
+    showVersionModal.value = true;
+  }
+}
+
+function closeVersionModal() {
+  showVersionModal.value = false;
 }
 </script>
 
@@ -378,6 +397,15 @@ function getEntryIconClass(entry) {
 
         <button
           class="footer__btn"
+          title="Version"
+          @click="showVersionInfo"
+          @keydown="handleKeyDown($event, showVersionInfo)"
+        >
+          <i class="fa fa-info-circle"></i>
+        </button>
+
+        <button
+          class="footer__btn"
           title="Help"
           @click="console.log('Help clicked')"
           @keydown="handleKeyDown($event, () => console.log('Help clicked'))"
@@ -411,6 +439,31 @@ function getEntryIconClass(entry) {
         >
           <i class="fa fa-sign-out-alt"></i>
         </button>
+      </div>
+    </div>
+
+    <!-- Version Modal -->
+    <div v-if="showVersionModal" class="modal-overlay" @click="closeVersionModal">
+      <div class="modal" @click.stop>
+        <div class="modal__header">
+          <h2 class="modal__title">KeeWeb</h2>
+          <button class="modal__close" @click="closeVersionModal" title="Close">
+            <i class="fa fa-times"></i>
+          </button>
+        </div>
+        <div class="modal__body">
+          <div class="version-info">
+            <div class="version-info__row">
+              <span class="version-info__label">Version:</span>
+              <span class="version-info__value">{{ appVersion }}</span>
+            </div>
+          </div>
+        </div>
+        <div class="modal__footer">
+          <button class="modal__btn modal__btn--primary" @click="closeVersionModal">
+            OK
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -1049,5 +1102,114 @@ function getEntryIconClass(entry) {
   .details__body-aside {
     display: none;
   }
+}
+
+/* Modal styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: var(--z-index-modal);
+}
+
+.modal {
+  background-color: var(--secondary-background-color);
+  border-radius: var(--block-border-radius);
+  min-width: 300px;
+  max-width: 400px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.modal__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--base-border-color);
+}
+
+.modal__title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.modal__close {
+  background: none;
+  border: none;
+  color: var(--muted-color);
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 3px;
+  font-size: 16px;
+}
+
+.modal__close:hover {
+  background-color: var(--hover-background-color);
+  color: var(--text-color);
+}
+
+.modal__body {
+  padding: 20px;
+}
+
+.version-info__row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.version-info__row:last-child {
+  margin-bottom: 0;
+}
+
+.version-info__label {
+  font-weight: 500;
+  color: var(--muted-color);
+}
+
+.version-info__value {
+  font-family: var(--monospace-font-family);
+  color: var(--text-color);
+}
+
+.modal__footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 16px 20px;
+  border-top: 1px solid var(--base-border-color);
+}
+
+.modal__btn {
+  padding: 8px 20px;
+  border-radius: var(--button-border-radius);
+  cursor: pointer;
+  font-size: 12px;
+  border: 1px solid var(--base-border-color);
+  background-color: var(--secondary-background-color);
+  color: var(--text-color);
+}
+
+.modal__btn:hover {
+  background-color: var(--hover-background-color);
+}
+
+.modal__btn--primary {
+  background-color: var(--action-color);
+  border-color: var(--action-color);
+  color: white;
+}
+
+.modal__btn--primary:hover {
+  background-color: var(--action-background-color-focus);
+  border-color: var(--action-background-color-focus);
 }
 </style>
