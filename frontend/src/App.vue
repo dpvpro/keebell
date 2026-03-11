@@ -207,79 +207,18 @@ onUnmounted(() => {
         @copy-username="copyToClipboard"
         @copy-password="copyToClipboard"
         @open-url="openUrl"
+        @show-version="showVersionInfo"
+        @show-help="console.log('Help clicked')"
+        @show-settings="console.log('Settings clicked')"
+        @generate-password="console.log('Generate password clicked')"
+        @logout="handleLogout"
       />
-      
+
       <!-- Empty state when no database is open -->
       <div v-else class="empty-state">
         <i class="fa fa-key"></i>
         <h2>No Database Open</h2>
         <p>Open a KeePass database file to view entries</p>
-      </div>
-    </div>
-
-    <!-- Footer -->
-    <div v-if="isLoggedIn" class="app__footer">
-      <div class="footer">
-        <div
-          v-for="file in openFiles"
-          :key="file.id"
-          :class="['footer__db', { 'footer__db--dimmed': !file.active }]"
-          :title="file.name"
-        >
-          <i :class="`fa fa-${file.active ? 'unlock' : 'lock'}`"></i>
-          <span class="footer__db-name">{{ file.name }}</span>
-          <i v-if="file.modified" class="fa fa-circle footer__db-sign"></i>
-        </div>
-
-        <div class="footer__db footer__db--dimmed footer__db-open">
-          <i class="fa fa-plus"></i>
-          <span class="footer__db-text">Open Database</span>
-        </div>
-
-        <button
-          class="footer__btn"
-          title="Version"
-          @click="showVersionInfo"
-          @keydown="handleKeyDown($event, showVersionInfo)"
-        >
-          <i class="fa fa-info-circle"></i>
-        </button>
-
-        <button
-          class="footer__btn"
-          title="Help"
-          @click="console.log('Help clicked')"
-          @keydown="handleKeyDown($event, () => console.log('Help clicked'))"
-        >
-          <i class="fa fa-question"></i>
-        </button>
-
-        <button
-          class="footer__btn"
-          title="Settings"
-          @click="console.log('Settings clicked')"
-          @keydown="handleKeyDown($event, () => console.log('Settings clicked'))"
-        >
-          <i class="fa fa-cog"></i>
-        </button>
-
-        <button
-          class="footer__btn"
-          title="Generate Password"
-          @click="console.log('Generate password clicked')"
-          @keydown="handleKeyDown($event, () => console.log('Generate password clicked'))"
-        >
-          <i class="fa fa-bolt"></i>
-        </button>
-
-        <button
-          class="footer__btn"
-          title="Lock Database"
-          @click="handleLogout"
-          @keydown="handleKeyDown($event, handleLogout)"
-        >
-          <i class="fa fa-sign-out-alt"></i>
-        </button>
       </div>
     </div>
 

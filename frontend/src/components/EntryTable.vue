@@ -8,7 +8,7 @@ const props = defineProps({
   }
 });
 
-const emit = defineEmits(['select-entry', 'copy-username', 'copy-password', 'open-url']);
+const emit = defineEmits(['select-entry', 'copy-username', 'copy-password', 'open-url', 'show-version', 'show-help', 'show-settings', 'generate-password', 'logout']);
 
 const selectedEntry = ref(null);
 const searchTerm = ref('');
@@ -87,6 +87,71 @@ function formatDate(timestamp) {
       <span v-if="filteredEntries.length" class="entry-table__count">
         {{ filteredEntries.length }} entries
       </span>
+      <div class="entry-table__actions-bar">
+        <button
+          v-if="selectedEntry"
+          class="entry-table__search-action"
+          title="Copy Username"
+          @click="copyToClipboard(selectedEntry.userName, 'username')"
+        >
+          <i class="fa fa-user"></i>
+          <span>Username</span>
+        </button>
+        <button
+          v-if="selectedEntry"
+          class="entry-table__search-action"
+          title="Copy Password"
+          @click="copyToClipboard(selectedEntry.password, 'password')"
+        >
+          <i class="fa fa-key"></i>
+          <span>Password</span>
+        </button>
+        <button
+          v-if="selectedEntry?.url"
+          class="entry-table__search-action"
+          title="Open URL"
+          @click="openUrl(selectedEntry.url)"
+        >
+          <i class="fa fa-external-link"></i>
+          <span>Open</span>
+        </button>
+        <div class="entry-table__divider"></div>
+        <button
+          class="entry-table__search-action"
+          title="Version"
+          @click="$emit('show-version')"
+        >
+          <i class="fa fa-info-circle"></i>
+        </button>
+        <button
+          class="entry-table__search-action"
+          title="Help"
+          @click="$emit('show-help')"
+        >
+          <i class="fa fa-question"></i>
+        </button>
+        <button
+          class="entry-table__search-action"
+          title="Settings"
+          @click="$emit('show-settings')"
+        >
+          <i class="fa fa-cog"></i>
+        </button>
+        <button
+          class="entry-table__search-action"
+          title="Generate Password"
+          @click="$emit('generate-password')"
+        >
+          <i class="fa fa-bolt"></i>
+        </button>
+        <button
+          class="entry-table__search-action entry-table__search-action--danger"
+          title="Lock Database"
+          @click="$emit('logout')"
+        >
+          <i class="fa fa-sign-out-alt"></i>
+        </button>
+      </div>
     </div>
 
     <!-- Table Header -->
@@ -198,6 +263,54 @@ function formatDate(timestamp) {
   font-size: 12px;
   color: var(--muted-color);
   white-space: nowrap;
+}
+
+/* Actions Bar */
+.entry-table__actions-bar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
+}
+
+.entry-table__divider {
+  width: 1px;
+  height: 24px;
+  background-color: var(--base-border-color);
+  margin: 0 8px;
+}
+
+.entry-table__search-action {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  background: none;
+  border: 1px solid transparent;
+  color: var(--muted-color);
+  cursor: pointer;
+  border-radius: var(--button-border-radius);
+  font-size: 12px;
+  transition: all var(--fast-duration) var(--base-timing);
+}
+
+.entry-table__search-action:hover {
+  background-color: var(--hover-background-color);
+  color: var(--text-color);
+  border-color: var(--base-border-color);
+}
+
+.entry-table__search-action i {
+  font-size: 14px;
+}
+
+.entry-table__search-action--danger {
+  color: var(--error-color);
+}
+
+.entry-table__search-action--danger:hover {
+  background-color: var(--error-background-color-focus-tr);
+  border-color: var(--error-color);
 }
 
 /* Table Header */
