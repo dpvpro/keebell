@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue';
+import { ref, onMounted, onUnmounted } from 'vue';
 
 const emit = defineEmits(['login']);
 
@@ -20,10 +20,10 @@ function handleLogin() {
     errorMessage.value = 'Please enter your password';
     return;
   }
-
+  
   isLoading.value = true;
   errorMessage.value = '';
-
+  
   // Simulate login - in real app this would verify with the database
   setTimeout(() => {
     isLoading.value = false;
@@ -58,6 +58,22 @@ function openOptions() {
 function closeOptions() {
   showOptionsModal.value = false;
 }
+
+function handleEscapeKey(event) {
+  if (event.key === 'Escape') {
+    if (showOptionsModal.value) {
+      closeOptions();
+    }
+  }
+}
+
+onMounted(() => {
+  document.addEventListener('keydown', handleEscapeKey);
+});
+
+onUnmounted(() => {
+  document.removeEventListener('keydown', handleEscapeKey);
+});
 </script>
 
 <template>

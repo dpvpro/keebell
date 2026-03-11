@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, onUnmounted } from 'vue';
 import { Version } from '../wailsjs/go/main/App';
 import LoginView from './components/LoginView.vue';
 
@@ -46,13 +46,6 @@ function updateBodyTheme() {
 }
 
 // Initialize with first entry selected and set theme
-onMounted(() => {
-  if (entries.value.length > 0 && !selectedEntry.value) {
-    selectedEntry.value = entries.value[0];
-  }
-  updateBodyTheme();
-});
-
 function selectEntry(entry) {
   selectedEntry.value = entry;
 }
@@ -133,6 +126,31 @@ function handleLogout() {
   password.value = '';
   selectedEntry.value = null;
 }
+
+function handleEscapeKey(event) {
+  if (event.key === 'Escape') {
+    // Close modals
+    if (showVersionModal.value) {
+      closeVersionModal();
+    }
+    // Blur active element to remove focus from inputs
+    if (document.activeElement && document.activeElement.tagName !== 'BODY') {
+      document.activeElement.blur();
+    }
+  }
+}
+
+onMounted(() => {
+  if (entries.value.length > 0 && !selectedEntry.value) {
+    selectedEntry.value = entries.value[0];
+  }
+  updateBodyTheme();
+  document.addEventListener('keydown', handleEscapeKey);
+});
+
+onUnmounted(() => {
+  document.removeEventListener('keydown', handleEscapeKey);
+});
 </script>
 
 <template>
