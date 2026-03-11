@@ -42,7 +42,7 @@ func (a *App) Greet(name string) string {
 
 // Name returns the launcher name
 func (a *App) Name() string {
-	return "wails"
+	return "Keebell"
 }
 
 // Version returns the launcher version
