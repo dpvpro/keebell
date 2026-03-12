@@ -3,6 +3,7 @@ import { ref, onMounted, onUnmounted } from 'vue';
 import { Version } from '../wailsjs/go/main/App';
 import LoginView from './components/login-view.vue';
 import EntryTable from './components/entry-table.vue';
+import EntryDetail from './components/entry-detail.vue';
 import { useDatabase, useAuth, useTheme } from './composables';
 import { copyToClipboard } from './utils/clipboard';
 
@@ -31,9 +32,18 @@ const {
 
 // Local state
 const selectedEntry = ref(null);
+const showDetailEntry = ref(null);
 const showPassword = ref(false);
 const showVersionModal = ref(false);
 const appVersion = ref('');
+
+function openDetail(entry) {
+  showDetailEntry.value = entry;
+}
+
+function closeDetail() {
+  showDetailEntry.value = null;
+}
 
 function handleKeyDown(event, action) {
   // Handle Enter or Space key for accessibility
@@ -103,6 +113,10 @@ function handleEscapeKey(event) {
     if (showVersionModal.value) {
       closeVersionModal();
     }
+    if (showDetailEntry.value) {
+      closeDetail();
+      return;
+    }
     window.dispatchEvent(new CustomEvent('global-escape'));
     if (document.activeElement && document.activeElement.tagName !== 'BODY') {
       document.activeElement.blur();
@@ -133,9 +147,20 @@ onUnmounted(() => {
 
     <!-- Main App View -->
     <div v-else class="app__body-wrapper">
+      <!-- Entry Detail View -->
+      <EntryDetail
+        v-if="showDetailEntry"
+        :entry="showDetailEntry"
+        @close="closeDetail"
+        @copy-username="copyToClipboard"
+        @copy-password="copyToClipboard"
+        @copy-url="copyToClipboard"
+        @copy-notes="copyToClipboard"
+      />
+
       <!-- Entry Table -->
       <EntryTable
-        v-if="isDatabaseOpen"
+        v-else-if="isDatabaseOpen"
         :entries="entries"
         @select-entry="selectEntry"
         @copy-username="copyToClipboard"
@@ -145,6 +170,7 @@ onUnmounted(() => {
         @show-settings="console.log('Settings clicked')"
         @generate-password="console.log('Generate password clicked')"
         @logout="handleLogout"
+        @open-detail="openDetail"
       />
 
       <!-- Empty state when no database is open -->

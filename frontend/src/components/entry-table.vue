@@ -8,7 +8,7 @@ const props = defineProps({
   }
 });
 
-const emit = defineEmits(['select-entry', 'copy-username', 'copy-password', 'show-version', 'show-help', 'show-settings', 'generate-password', 'logout']);
+const emit = defineEmits(['select-entry', 'copy-username', 'copy-password', 'show-version', 'show-help', 'show-settings', 'generate-password', 'logout', 'open-detail']);
 
 const selectedEntry = ref(null);
 const searchTerm = ref('');
@@ -183,7 +183,15 @@ function formatDate(timestamp) {
           <i :class="`fa ${getEntryIcon(entry)}`"></i>
         </div>
         <div class="entry-table__col entry-table__col--title">
-          <span class="entry-table__cell-text">{{ entry.title || '(no title)' }}</span>
+          <span
+            class="entry-table__cell-text entry-table__cell-text--clickable"
+            @click.stop="$emit('open-detail', entry)"
+            @keydown="handleKeyDown($event, () => $emit('open-detail', entry))"
+            role="button"
+            tabindex="0"
+          >
+            {{ entry.title || '(no title)' }}
+          </span>
         </div>
         <div class="entry-table__col entry-table__col--username">
           <span class="entry-table__cell-text">{{ entry.userName || '' }}</span>
@@ -465,6 +473,21 @@ function formatDate(timestamp) {
 
 .entry-table__cell-text {
   font-size: 13px;
+}
+
+.entry-table__cell-text--clickable {
+  color: var(--action-color);
+  cursor: pointer;
+  transition: all var(--fast-duration) var(--base-timing);
+}
+
+.entry-table__cell-text--clickable:hover {
+  text-decoration: underline;
+}
+
+.entry-table__cell-text--clickable:focus {
+  outline: 2px solid var(--action-color);
+  outline-offset: 2px;
 }
 
 /* Action Buttons */
