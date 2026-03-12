@@ -8,7 +8,7 @@ const props = defineProps({
   }
 });
 
-const emit = defineEmits(['select-entry', 'copy-username', 'copy-password', 'open-url', 'show-version', 'show-help', 'show-settings', 'generate-password', 'logout']);
+const emit = defineEmits(['select-entry', 'copy-username', 'copy-password', 'show-version', 'show-help', 'show-settings', 'generate-password', 'logout']);
 
 const selectedEntry = ref(null);
 const searchTerm = ref('');
@@ -70,10 +70,17 @@ function copyToClipboard(text, type) {
 
 function openUrl(url) {
   if (!url) return;
+  
+  // Добавляем https:// если протокол не указан
+  let fullUrl = url;
+  if (!/^(https?:\/\/|ftp:\/\/|mailto:|sftp:\/\/)/i.test(url)) {
+    fullUrl = 'https://' + url;
+  }
+  
   if (window.Launcher) {
-    window.Launcher.openLink(url);
+    window.Launcher.openLink(fullUrl);
   } else {
-    window.open(url, '_blank');
+    window.open(fullUrl, '_blank');
   }
 }
 
@@ -112,33 +119,6 @@ function formatDate(timestamp) {
         {{ filteredEntries.length }} entries
       </span>
       <div class="entry-table__actions-bar">
-        <button
-          v-if="selectedEntry"
-          class="entry-table__search-action"
-          title="Copy Username"
-          @click="copyToClipboard(selectedEntry.userName, 'username')"
-        >
-          <i class="fa fa-user"></i>
-          <span>Username</span>
-        </button>
-        <button
-          v-if="selectedEntry"
-          class="entry-table__search-action"
-          title="Copy Password"
-          @click="copyToClipboard(selectedEntry.password, 'password')"
-        >
-          <i class="fa fa-key"></i>
-          <span>Password</span>
-        </button>
-        <button
-          v-if="selectedEntry?.url"
-          class="entry-table__search-action"
-          title="Open URL"
-          @click="openUrl(selectedEntry.url)"
-        >
-          <i class="fa fa-external-link"></i>
-          <span>Open</span>
-        </button>
         <div class="entry-table__divider"></div>
         <button
           class="entry-table__search-action"
@@ -209,10 +189,18 @@ function formatDate(timestamp) {
           <span class="entry-table__cell-text">{{ entry.userName || '' }}</span>
         </div>
         <div class="entry-table__col entry-table__col--url">
-          <span v-if="entry.url" class="entry-table__url" @click.stop="openUrl(entry.url)">
+          <span
+            v-if="entry.url"
+            class="entry-table__url"
+            @click.stop="openUrl(entry.url)"
+            @keydown="handleKeyDown($event, () => openUrl(entry.url))"
+            role="button"
+            tabindex="0"
+          >
             <i class="fa fa-external-link"></i>
             {{ entry.url }}
           </span>
+          <span v-else class="entry-table__url entry-table__url--empty"></span>
         </div>
         <div class="entry-table__col entry-table__col--modified">
           <span class="entry-table__cell-text">{{ formatDate(entry.modifiedTime) }}</span>
@@ -434,10 +422,32 @@ function formatDate(timestamp) {
   color: var(--action-color);
   cursor: pointer;
   font-size: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 4px;
+  border-radius: var(--button-border-radius);
+  transition: all var(--fast-duration) var(--base-timing);
 }
 
 .entry-table__url:hover {
+  background-color: var(--hover-background-color);
   text-decoration: underline;
+}
+
+.entry-table__url:focus {
+  outline: 2px solid var(--action-color);
+  outline-offset: 2px;
+}
+
+.entry-table__url--empty {
+  color: var(--muted-color);
+  cursor: default;
+}
+
+.entry-table__url--empty:hover {
+  background-color: transparent;
+  text-decoration: none;
 }
 
 .entry-table__col--modified {

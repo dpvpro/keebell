@@ -4,7 +4,7 @@ import { Version } from '../wailsjs/go/main/App';
 import LoginView from './components/login-view.vue';
 import EntryTable from './components/entry-table.vue';
 import { useDatabase, useAuth, useTheme } from './composables';
-import { copyToClipboard, openUrl } from './utils/clipboard';
+import { copyToClipboard } from './utils/clipboard';
 
 // Composables
 const {
@@ -140,7 +140,6 @@ onUnmounted(() => {
         @select-entry="selectEntry"
         @copy-username="copyToClipboard"
         @copy-password="copyToClipboard"
-        @open-url="openUrl"
         @show-version="showVersionInfo"
         @show-help="console.log('Help clicked')"
         @show-settings="console.log('Settings clicked')"
