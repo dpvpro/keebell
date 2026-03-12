@@ -67,9 +67,6 @@ function getEntryIcon(entry) {
       >
         <i class="fa fa-arrow-left"></i>
       </button>
-      <div class="entry-detail__icon">
-        <i :class="getEntryIcon(entry)"></i>
-      </div>
       <h1 class="entry-detail__title">{{ entry.title || '(no title)' }}</h1>
     </div>
 
@@ -159,7 +156,7 @@ function getEntryIcon(entry) {
               @click="openUrl(entry.url)"
               @keydown="handleKeyDown($event, () => openUrl(entry.url))"
             >
-              <i class="fa fa-external-link"></i>
+              <i class="fa fa-globe"></i>
             </button>
           </div>
         </div>
@@ -176,14 +173,6 @@ function getEntryIcon(entry) {
               readonly
               class="entry-detail__textarea"
             ></textarea>
-            <button
-              class="entry-detail__copy-btn"
-              title="Copy"
-              @click="copyToClipboard(entry.notes, 'notes')"
-              @keydown="handleKeyDown($event, () => copyToClipboard(entry.notes, 'notes'))"
-            >
-              <i class="fa fa-copy"></i>
-            </button>
           </div>
         </div>
 
@@ -376,7 +365,7 @@ function getEntryIcon(entry) {
 
 .entry-detail__textarea {
   resize: vertical;
-  min-height: 100px;
+  min-height: 250px;
 }
 
 .entry-detail__copy-btn {

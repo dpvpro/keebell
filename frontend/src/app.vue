@@ -162,7 +162,6 @@ onUnmounted(() => {
       <EntryTable
         v-else-if="isDatabaseOpen"
         :entries="entries"
-        @select-entry="selectEntry"
         @copy-username="copyToClipboard"
         @copy-password="copyToClipboard"
         @show-version="showVersionInfo"

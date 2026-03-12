@@ -8,9 +8,8 @@ const props = defineProps({
   }
 });
 
-const emit = defineEmits(['select-entry', 'copy-username', 'copy-password', 'show-version', 'show-help', 'show-settings', 'generate-password', 'logout', 'open-detail']);
+const emit = defineEmits(['copy-username', 'copy-password', 'show-version', 'show-help', 'show-settings', 'generate-password', 'logout', 'open-detail']);
 
-const selectedEntry = ref(null);
 const searchTerm = ref('');
 const showPassword = ref(false);
 
@@ -52,11 +51,6 @@ onUnmounted(() => {
   document.removeEventListener('keydown', handleEscapeKey);
   window.removeEventListener('global-escape', handleGlobalEscape);
 });
-
-function selectEntry(entry) {
-  selectedEntry.value = entry;
-  emit('select-entry', entry);
-}
 
 function copyToClipboard(text, type) {
   if (!text) return;
@@ -174,8 +168,8 @@ function formatDate(timestamp) {
         v-for="entry in filteredEntries"
         :key="entry.uuid"
         :class="['entry-table__row', { 'entry-table__row--selected': selectedEntry?.uuid === entry.uuid }]"
-        @click="selectEntry(entry)"
-        @keydown="handleKeyDown($event, () => selectEntry(entry))"
+        @click="$emit('open-detail', entry)"
+        @keydown="handleKeyDown($event, () => $emit('open-detail', entry))"
         role="button"
         tabindex="0"
       >
@@ -183,13 +177,7 @@ function formatDate(timestamp) {
           <i :class="`fa ${getEntryIcon(entry)}`"></i>
         </div>
         <div class="entry-table__col entry-table__col--title">
-          <span
-            class="entry-table__cell-text entry-table__cell-text--clickable"
-            @click.stop="$emit('open-detail', entry)"
-            @keydown="handleKeyDown($event, () => $emit('open-detail', entry))"
-            role="button"
-            tabindex="0"
-          >
+          <span class="entry-table__cell-text">
             {{ entry.title || '(no title)' }}
           </span>
         </div>
