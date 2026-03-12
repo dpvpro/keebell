@@ -42,11 +42,6 @@ function handleKeyDown(event, action) {
   }
 }
 
-function formatDate(timestamp) {
-  if (!timestamp) return '';
-  return new Date(timestamp * 1000).toLocaleDateString();
-}
-
 function getEntryIcon(entry) {
   if (entry.icon && entry.icon !== '00000000000000000000000000000000') {
     return 'fa-key bg-action-color';
@@ -215,15 +210,15 @@ function getEntryIcon(entry) {
           <div class="entry-detail__info">
             <div class="entry-detail__info-row">
               <span class="entry-detail__info-label">Created:</span>
-              <span class="entry-detail__info-value">{{ formatDate(entry.createdTime) }}</span>
+              <span class="entry-detail__info-value">{{ entry.createdTime }}</span>
             </div>
             <div class="entry-detail__info-row">
               <span class="entry-detail__info-label">Modified:</span>
-              <span class="entry-detail__info-value">{{ formatDate(entry.modifiedTime) }}</span>
+              <span class="entry-detail__info-value">{{ entry.modifiedTime }}</span>
             </div>
             <div v-if="entry.expiryTime" class="entry-detail__info-row">
               <span class="entry-detail__info-label">Expires:</span>
-              <span class="entry-detail__info-value">{{ formatDate(entry.expiryTime) }}</span>
+              <span class="entry-detail__info-value">{{ entry.expiryTime }}</span>
             </div>
           </div>
         </div>
@@ -273,7 +268,7 @@ function getEntryIcon(entry) {
   cursor: pointer;
   padding: 8px 12px;
   border-radius: var(--button-border-radius);
-  font-size: 14px;
+  font-size: 15px;
   transition: all var(--fast-duration) var(--base-timing);
 }
 
@@ -294,13 +289,13 @@ function getEntryIcon(entry) {
 }
 
 .entry-detail__icon i {
-  font-size: 24px;
+  font-size: 25px;
   color: white;
 }
 
 .entry-detail__title {
   margin: 0;
-  font-size: 20px;
+  font-size: 21px;
   font-weight: 600;
   color: var(--text-color);
   flex: 1;
@@ -327,7 +322,7 @@ function getEntryIcon(entry) {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   text-transform: uppercase;
   color: var(--muted-color);
@@ -336,7 +331,7 @@ function getEntryIcon(entry) {
 }
 
 .entry-detail__field-label i {
-  font-size: 12px;
+  font-size: 13px;
 }
 
 .entry-detail__field-value {
@@ -354,7 +349,7 @@ function getEntryIcon(entry) {
   background-color: var(--secondary-background-color);
   color: var(--text-color);
   font-family: inherit;
-  font-size: 13px;
+  font-size: 14px;
 }
 
 .entry-detail__input:focus,
@@ -375,7 +370,7 @@ function getEntryIcon(entry) {
   cursor: pointer;
   padding: 10px 12px;
   border-radius: var(--button-border-radius);
-  font-size: 14px;
+  font-size: 15px;
   transition: all var(--fast-duration) var(--base-timing);
 }
 
@@ -406,7 +401,7 @@ function getEntryIcon(entry) {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
   text-transform: uppercase;
   color: var(--muted-color);
@@ -415,7 +410,7 @@ function getEntryIcon(entry) {
 }
 
 .entry-detail__section-title i {
-  font-size: 14px;
+  font-size: 15px;
 }
 
 .entry-detail__info {
@@ -427,7 +422,7 @@ function getEntryIcon(entry) {
 .entry-detail__info-row {
   display: flex;
   justify-content: space-between;
-  font-size: 12px;
+  font-size: 13px;
 }
 
 .entry-detail__info-label {
@@ -450,7 +445,7 @@ function getEntryIcon(entry) {
   background-color: var(--secondary-background-color);
   border: 1px solid var(--base-border-color);
   border-radius: 12px;
-  font-size: 11px;
+  font-size: 12px;
   color: var(--text-color);
 }
 

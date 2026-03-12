@@ -1,18 +1,18 @@
 export namespace main {
 	
 	export class KDBXEntry {
-	    uuid: string;
-	    title: string;
-	    userName: string;
-	    password: string;
-	    url: string;
-	    notes: string;
-	    icon: string;
-	    tags: string[];
-	    createdTime: number;
-	    modifiedTime: number;
-	    expiryTime?: number;
-	    customFields?: Record<string, string>;
+	    UUID: string;
+	    Title: string;
+	    UserName: string;
+	    Password: string;
+	    URL: string;
+	    Notes: string;
+	    Icon: string;
+	    Tags: string[];
+	    CreatedTime: number;
+	    ModifiedTime: number;
+	    ExpiryTime?: number;
+	    CustomFields: Record<string, string>;
 	
 	    static createFrom(source: any = {}) {
 	        return new KDBXEntry(source);
@@ -20,18 +20,18 @@ export namespace main {
 	
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
-	        this.uuid = source["uuid"];
-	        this.title = source["title"];
-	        this.userName = source["userName"];
-	        this.password = source["password"];
-	        this.url = source["url"];
-	        this.notes = source["notes"];
-	        this.icon = source["icon"];
-	        this.tags = source["tags"];
-	        this.createdTime = source["createdTime"];
-	        this.modifiedTime = source["modifiedTime"];
-	        this.expiryTime = source["expiryTime"];
-	        this.customFields = source["customFields"];
+	        this.UUID = source["UUID"];
+	        this.Title = source["Title"];
+	        this.UserName = source["UserName"];
+	        this.Password = source["Password"];
+	        this.URL = source["URL"];
+	        this.Notes = source["Notes"];
+	        this.Icon = source["Icon"];
+	        this.Tags = source["Tags"];
+	        this.CreatedTime = source["CreatedTime"];
+	        this.ModifiedTime = source["ModifiedTime"];
+	        this.ExpiryTime = source["ExpiryTime"];
+	        this.CustomFields = source["CustomFields"];
 	    }
 	}
 	export class KDBXGroup {

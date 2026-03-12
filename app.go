@@ -437,17 +437,15 @@ func (a *App) OpenDatabase(path, password string) map[string]interface{} {
 			"error":   err.Error(),
 		}
 	}
-	
+
 	a.currentDB = db
-	
+
+	// Convert to response DTO with formatted dates
+	dbResponse := databaseToResponse(db)
+
 	return map[string]interface{}{
-		"success": true,
-		"database": map[string]interface{}{
-			"name":       db.Name,
-			"path":       db.Path,
-			"groups":     db.Groups,
-			"allEntries": db.AllEntries,
-		},
+		"success":  true,
+		"database": dbResponse,
 	}
 }
 

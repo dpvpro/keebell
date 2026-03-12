@@ -3,12 +3,29 @@ package main
 import (
 	"encoding/hex"
 	"os"
+	"time"
 
 	"github.com/tobischo/gokeepasslib/v3"
 )
 
-// KDBXEntry represents a password entry from KeePass database
+// KDBXEntry represents a password entry from KeePass database (internal structure)
 type KDBXEntry struct {
+	UUID         string
+	Title        string
+	UserName     string
+	Password     string
+	URL          string
+	Notes        string
+	Icon         string
+	Tags         []string
+	CreatedTime  int64
+	ModifiedTime int64
+	ExpiryTime   *int64
+	CustomFields map[string]string
+}
+
+// EntryResponse represents a password entry for JSON API response
+type EntryResponse struct {
 	UUID         string            `json:"uuid"`
 	Title        string            `json:"title"`
 	UserName     string            `json:"userName"`
@@ -17,9 +34,9 @@ type KDBXEntry struct {
 	Notes        string            `json:"notes"`
 	Icon         string            `json:"icon"`
 	Tags         []string          `json:"tags"`
-	CreatedTime  int64             `json:"createdTime"`
-	ModifiedTime int64             `json:"modifiedTime"`
-	ExpiryTime   *int64            `json:"expiryTime,omitempty"`
+	CreatedTime  string            `json:"createdTime"`
+	ModifiedTime string            `json:"modifiedTime"`
+	ExpiryTime   string            `json:"expiryTime,omitempty"`
 	CustomFields map[string]string `json:"customFields,omitempty"`
 }
 
@@ -32,12 +49,29 @@ type KDBXGroup struct {
 	Groups   []KDBXGroup   `json:"groups,omitempty"`
 }
 
-// KDBXDatabase represents the parsed KeePass database
+// GroupResponse represents a group for JSON API response
+type GroupResponse struct {
+	UUID     string          `json:"uuid"`
+	Name     string          `json:"name"`
+	Icon     string          `json:"icon"`
+	Entries  []EntryResponse `json:"entries,omitempty"`
+	Groups   []GroupResponse `json:"groups,omitempty"`
+}
+
+// KDBXDatabase represents the parsed KeePass database (internal structure)
 type KDBXDatabase struct {
-	Name       string      `json:"name"`
-	Path       string      `json:"path"`
-	Groups     []KDBXGroup `json:"groups"`
-	AllEntries []KDBXEntry `json:"allEntries"`
+	Name       string
+	Path       string
+	Groups     []KDBXGroup
+	AllEntries []KDBXEntry
+}
+
+// DatabaseResponse represents the database for JSON API response
+type DatabaseResponse struct {
+	Name       string          `json:"name"`
+	Path       string          `json:"path"`
+	Groups     []GroupResponse `json:"groups"`
+	AllEntries []EntryResponse `json:"allEntries"`
 }
 
 // OpenKDBX opens and decrypts a KDBX database file
@@ -101,7 +135,7 @@ func convertEntries(entries []gokeepasslib.Entry) []KDBXEntry {
 			CustomFields: make(map[string]string),
 		}
 
-		// Get times
+		// Get times as Unix timestamps
 		if e.Times.CreationTime != nil {
 			kdbxEntry.CreatedTime = e.Times.CreationTime.Time.Unix()
 		}
@@ -124,6 +158,73 @@ func convertEntries(entries []gokeepasslib.Entry) []KDBXEntry {
 		result = append(result, kdbxEntry)
 	}
 	return result
+}
+
+// entryToResponse converts KDBXEntry to EntryResponse with formatted dates
+func entryToResponse(entry KDBXEntry) EntryResponse {
+	resp := EntryResponse{
+		UUID:         entry.UUID,
+		Title:        entry.Title,
+		UserName:     entry.UserName,
+		Password:     entry.Password,
+		URL:          entry.URL,
+		Notes:        entry.Notes,
+		Icon:         entry.Icon,
+		Tags:         entry.Tags,
+		CustomFields: entry.CustomFields,
+	}
+
+	// Format dates only if they are not zero
+	if entry.CreatedTime != 0 {
+		resp.CreatedTime = formatDateRU(time.Unix(entry.CreatedTime, 0))
+	}
+	if entry.ModifiedTime != 0 {
+		resp.ModifiedTime = formatDateRU(time.Unix(entry.ModifiedTime, 0))
+	}
+	if entry.ExpiryTime != nil && *entry.ExpiryTime != 0 {
+		resp.ExpiryTime = formatDateRU(time.Unix(*entry.ExpiryTime, 0))
+	}
+
+	return resp
+}
+
+// entriesToResponse converts a slice of KDBXEntry to EntryResponse
+func entriesToResponse(entries []KDBXEntry) []EntryResponse {
+	result := make([]EntryResponse, 0, len(entries))
+	for _, entry := range entries {
+		result = append(result, entryToResponse(entry))
+	}
+	return result
+}
+
+// groupToResponse converts KDBXGroup to GroupResponse with formatted dates
+func groupToResponse(group KDBXGroup) GroupResponse {
+	return GroupResponse{
+		UUID:     group.UUID,
+		Name:     group.Name,
+		Icon:     group.Icon,
+		Entries:  entriesToResponse(group.Entries),
+		Groups:   groupsToResponse(group.Groups),
+	}
+}
+
+// groupsToResponse converts a slice of KDBXGroup to GroupResponse
+func groupsToResponse(groups []KDBXGroup) []GroupResponse {
+	result := make([]GroupResponse, 0, len(groups))
+	for _, group := range groups {
+		result = append(result, groupToResponse(group))
+	}
+	return result
+}
+
+// databaseToResponse converts KDBXDatabase to DatabaseResponse
+func databaseToResponse(db *KDBXDatabase) *DatabaseResponse {
+	return &DatabaseResponse{
+		Name:       db.Name,
+		Path:       db.Path,
+		Groups:     groupsToResponse(db.Groups),
+		AllEntries: entriesToResponse(db.AllEntries),
+	}
 }
 
 // uuidToString converts UUID to string
@@ -182,4 +283,12 @@ func collectAllEntries(groups []gokeepasslib.Group) []KDBXEntry {
 		entries = append(entries, collectAllEntries(g.Groups)...)
 	}
 	return entries
+}
+
+// formatDateRU форматирует timestamp в российский формат даты (ДД.ММ.ГГГГ ЧЧ:ММ)
+func formatDateRU(t time.Time) string {
+	if t.IsZero() {
+		return ""
+	}
+	return t.Format("02.01.2006 15:04")
 }
