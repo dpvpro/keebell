@@ -70,13 +70,13 @@ function copyToClipboard(text, type) {
 
 function openUrl(url) {
   if (!url) return;
-  
+
   // Добавляем https:// если протокол не указан
   let fullUrl = url;
   if (!/^(https?:\/\/|ftp:\/\/|mailto:|sftp:\/\/)/i.test(url)) {
     fullUrl = 'https://' + url;
   }
-  
+
   if (window.Launcher) {
     window.Launcher.openLink(fullUrl);
   } else {
@@ -122,13 +122,6 @@ function formatDate(timestamp) {
         <div class="entry-table__divider"></div>
         <button
           class="entry-table__search-action"
-          title="Version"
-          @click="$emit('show-version')"
-        >
-          <i class="fa fa-info-circle"></i>
-        </button>
-        <button
-          class="entry-table__search-action"
           title="Help"
           @click="$emit('show-help')"
         >
@@ -141,12 +134,19 @@ function formatDate(timestamp) {
         >
           <i class="fa fa-cog"></i>
         </button>
-        <button
+       <button
           class="entry-table__search-action"
           title="Generate Password"
           @click="$emit('generate-password')"
         >
           <i class="fa fa-bolt"></i>
+        </button>
+         <button
+          class="entry-table__search-action"
+          title="Version"
+          @click="$emit('show-version')"
+        >
+          <i class="fa fa-info-circle"></i>
         </button>
         <button
           class="entry-table__search-action entry-table__search-action--danger"
