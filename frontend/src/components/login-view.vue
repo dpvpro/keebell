@@ -84,6 +84,22 @@ function selectDatabase(db) {
   focusPassword();
 }
 
+function removeDatabase(dbToRemove) {
+  recentDatabases.value = recentDatabases.value.filter(db => db.id !== dbToRemove.id);
+  
+  // Save to localStorage
+  try {
+    localStorage.setItem('keebell-recent-dbs', JSON.stringify(recentDatabases.value));
+  } catch (e) {
+    console.error('Failed to save recent databases:', e);
+  }
+  
+  // Clear selection if removed database was selected
+  if (selectedDatabase.value?.id === dbToRemove.id) {
+    selectedDatabase.value = null;
+  }
+}
+
 async function openDatabase() {
   try {
     const result = await window.Launcher?.getOpenFileName?.('', 'Open KeePass Database', 'KeePass Database', '*.kdbx');
@@ -208,7 +224,17 @@ onUnmounted(() => {
               <div class="database-item__name">{{ db.name }}</div>
               <div class="database-item__path">{{ db.path }}</div>
             </div>
-            <div class="database-item__modified">{{ db.modified }}</div>
+            <div class="database-item__actions">
+              <span class="database-item__modified">{{ db.modified }}</span>
+              <button
+                class="database-item__remove"
+                title="Remove from recent"
+                @click.stop="removeDatabase(db)"
+                @keydown="handleKeyDown($event, () => removeDatabase(db))"
+              >
+                <i class="fa fa-times"></i>
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -492,10 +518,37 @@ onUnmounted(() => {
   margin-top: 2px;
 }
 
+.database-item__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .database-item__modified {
   font-size: 11px;
   color: var(--muted-color);
   white-space: nowrap;
+}
+
+.database-item__remove {
+  background: none;
+  border: none;
+  color: var(--muted-color);
+  cursor: pointer;
+  padding: 6px 8px;
+  border-radius: var(--button-border-radius);
+  font-size: 14px;
+  transition: all var(--fast-duration) var(--base-timing);
+  opacity: 0;
+}
+
+.database-item:hover .database-item__remove {
+  opacity: 1;
+}
+
+.database-item__remove:hover {
+  background-color: var(--error-background-color-focus-tr);
+  color: var(--error-color);
 }
 
 /* Password Section */
